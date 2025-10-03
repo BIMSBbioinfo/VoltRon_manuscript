@@ -8,3 +8,8 @@ data/*
 supplementary/
 scratch/
 scratch/*
+.DS_Store
+*/.DS_Store
+*/old_files
+*/results
+*/data
