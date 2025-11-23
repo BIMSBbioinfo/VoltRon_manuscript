@@ -7,7 +7,7 @@
 ####
 
 
-Xen_R1 <- importXenium("../../data/xenium/Xenium_Prime_Mouse_Pup_FFPE_outs/", sample_name = "XeniumR1",
+Xen_R1 <- importXenium("../../../../data/xenium/Xenium_V1_mouse_pup_outs/", sample_name = "XeniumR1",
                        resolution_level = 3, overwrite_resolution = TRUE, import_molecules = FALSE)
 
 ####
@@ -19,8 +19,8 @@ library(BPCells)
 library(ImageArray)
 
 # save to disk
-Xen_R1_disk <- saveVoltRon(Xen_R1, format = "HDF5VoltRon", output = "data/Xenium_pups_prime", replace = TRUE)
-Xen_R1_disk <- loadVoltRon("data/Xenium_pups_prime//")
+Xen_R1_disk <- saveVoltRon(Xen_R1, format = "HDF5VoltRon", output = "../data/Xenium_pups_prime", replace = TRUE)
+Xen_R1_disk <- loadVoltRon("../data/Xenium_pups_prime//")
 
 ####
 ## Processing ####

@@ -56,6 +56,7 @@ transform_breaks_mem <- function(x){
 
 # get results
 list_files <- list.files("results/", full.names = TRUE)
+list_files <- list_files[grepl(".csv$", list_files)]
 list_files_names <- basename(list_files)
 list_files_names <- gsub("\\.[^.]*$", "", list_files_names)
 ind <- c(1,2,4,3,5)
@@ -146,6 +147,14 @@ all_results_time <- all_results[all_results$measure %in% "time",]
 all_results_time$name <- droplevels(all_results_time$name)
 breaks <- c(0.5,1,30,70,120)
 all_results_time$value <- transform_breaks_time(all_results_time$value)
+all_results_time$type <- ifelse(all_results_time$type != "image", 
+                               as.character(all_results_time$type), 
+                               ifelse(all_results_time$variable == "time_reg",
+                                      "Image (Reg.)",
+                                      "Image (Warp)"))
+tmp <- all_results_time$type
+tmp <- factor(tmp, levels = c("cells/spots", "molecules", "Image (Reg.)", "Image (Warp)"))
+all_results_time$type <- tmp
 all_results_time$data <- sapply(as.character(all_results_time$name), \(x){
   strsplit(x, split = " ")[[1]][1]
 })
@@ -161,6 +170,8 @@ ggplot(mapping = aes(x = name, y = value, fill = data), data = all_results_time)
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
   theme(legend.position = "top") + 
   ylab("Time (seconds)") + xlab("")
+ggsave("results/time.pdf", plot = last_plot(), device = "pdf", 
+       height = 7, width = 12)
   
 ####
 # visualize memory ####
@@ -197,3 +208,5 @@ ggplot(mapping = aes(x = name, y = value, fill = data), data = all_results_mem) 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
   theme(legend.position = "top") + 
   ylab("Memory Consumption (Bytes)") + xlab("")
+ggsave("results/memory.pdf", plot = last_plot(), device = "pdf", 
+       height = 7, width = 15)

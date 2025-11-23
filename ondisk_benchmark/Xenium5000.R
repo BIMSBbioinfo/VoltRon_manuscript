@@ -7,7 +7,7 @@ library(ggplot2)
 ###
 
 # import
-Xen_Pros <- importXenium("../../../data/xenium/Xenium_Prime_Human_Prostate_FFPE_outs/", sample_name = "XeniumR1",
+Xen_Pros <- importXenium("../../../../data/xenium/Xenium_Prime_Human_Prostate_FFPE_outs/", sample_name = "XeniumR1",
                        resolution_level = 3, overwrite_resolution = TRUE, import_molecules = FALSE)
 
 ###

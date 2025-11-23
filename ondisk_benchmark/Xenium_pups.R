@@ -6,7 +6,7 @@ library(ggplot2)
 ###
 
 # import
-Xen_pups <- importXenium("../../../data/xenium/Xenium_V1_mouse_pup_outs/", sample_name = "XeniumR1",
+Xen_pups <- importXenium("../../../../data/xenium/Xenium_V1_mouse_pup_outs/", sample_name = "XeniumR1",
                        resolution_level = 3, overwrite_resolution = TRUE, import_molecules = FALSE)
 
 ###

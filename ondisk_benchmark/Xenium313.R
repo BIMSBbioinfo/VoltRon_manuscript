@@ -5,7 +5,7 @@ library(VoltRon)
 ###
 
 # import
-Xen_R1 <- importXenium("../../../test/mainWorkflows/data/VisiumXenium/10X_Xenium_Visium/Xenium_R1/outs/", sample_name = "XeniumR1",
+Xen_R1 <- importXenium("../../../../test/mainWorkflows/data/VisiumXenium/10X_Xenium_Visium/Xenium_R1/outs/", sample_name = "XeniumR1",
                        resolution_level = 3, overwrite_resolution = TRUE, import_molecules = FALSE)
 
 ###
@@ -97,34 +97,6 @@ for(nm in names(objects_list)){
   pca.time[[nm]] <- (proc.time() - start)[3]
 }
 
-# compare Rspectra, BiocSingular and BPCells
-dims <- 30
-pca_new.time <- list()
-# bpcells time 
-start <- proc.time()
-normdata <- objects_list$BPCells[["Assay1"]]@data$RNA_norm
-svd <- BPCells::svds(normdata, k=dims)
-pr.data <- BPCells::multiply_cols(svd$v, svd$d)
-pca_new.time[["BPCells"]] <- (proc.time() - start)[3]
-# biocsingular
-start <- proc.time()
-normdata <- t(objects_list$HDF5[["Assay1"]]@data$RNA_norm)
-svd <- BiocSingular::runSVD(normdata, k = dims)
-x <- sweep(svd$u, 2, svd$d, "*")
-pca_new.time[["BiocSingular"]] <- (proc.time() - start)[3]
-# RSpectra
-start <- proc.time()
-mat <- objects_list$HDF5[["Assay1"]]@data$RNA_norm
-row_means <- DelayedMatrixStats::rowMeans2(mat)
-Ax <- function(x, args)
-  (as.numeric(mat %*% x) - row_means * sum(x))
-Atx <- function(x, args)
-  (as.numeric(x %*% mat) - as.vector(row_means %*% x))
-svd <- RSpectra::svds(Ax, Atrans=Atx, k=dims, dim=dim(mat))
-# svd <- RSpectra::svds(mat, k=dims, dim=dim(mat))
-x <- sweep(svd$u, 2, svd$d, "*")
-pca_new.time[["RSpectra"]] <- (proc.time() - start)[3]
-
 ###
 ## results ####
 ###
@@ -134,13 +106,3 @@ results <- data.frame(savedisk = unlist(savedisk.time),
                       #featureselection = unlist(feature.time), 
                       pca = unlist(pca.time))
 write.csv(results, file = "results/Xenium313.csv", quote = FALSE, row.names = TRUE)
-
-# BPCells error
-library(BPCells)
-m <- matrix(data = seq_len(100*100), nrow=100) |>
-  as("IterableMatrix")
-file <- tempfile(fileext = ".h5")
-m <- write_matrix_hdf5(m, path = file, group = "name")
-# file <- tempdir()
-# m <- write_matrix_dir(m, dir = file)
-svd <- BPCells::svds(m, k=30, threads=2L)

@@ -1,4 +1,4 @@
-library(VoltRon)
+# library(VoltRon)
 library(patchwork)
 library(ggpubr)
 library(mclust)
@@ -14,12 +14,12 @@ library(RBioFormats)
 # xen <- importXenium("Tonsil_xenium/outs", 
 #                     resolution_level = 3, overwrite_resolution = TRUE, 
 #                     sample_name = "XeniumR1")
-xen <- importXenium("../../../data/Erik/Erik_Alignment_TMA/out/output-XETG00420__0041844__Region_1__20250205__140630/",
+xen <- importXenium("../../../../data/Erik/Erik_Alignment_TMA/out/output-XETG00420__0041844__Region_1__20250205__140630/",
                     resolution_level = 3, overwrite_resolution = TRUE,
                     sample_name = "XeniumR1")
 
 # xenium annnotation
-xenium_lung <- read.csv("data/Tonsil/Xenium_hLung_v1_metadata.csv")
+xenium_lung <- read.csv("../data/Tonsil/Xenium_hLung_v1_metadata.csv")
 
 ####
 # Xenium Tonsil (Same Section) ####
@@ -31,10 +31,13 @@ xenium_lung <- read.csv("data/Tonsil/Xenium_hLung_v1_metadata.csv")
 
 # same section IF
 # ome.tiff <- "Tonsil/Same section/Core_13.ome.tif"
-ome.tiff <- "../../../data/Erik/Erik_Alignment_TMA/out/Same section/Core_13.ome.tif"
-ome_tiff_same_vr <- importImageData(ome.tiff, tile.size = 100, series = 1, 
-                                    resolution = 1, channels = c(1,4,8), 
-                                    channel_names = c("DAPI", "CD20", "CD21"), is.RGB = FALSE)
+ome.tiff <- "../../../../data/Erik/Erik_Alignment_TMA/out/Same section/Core_13.ome.tif"
+ome_tiff_same_vr <- importImageData(ome.tiff, 
+                                    tile.size = 100, 
+                                    series = 1, 
+                                    resolution = 1, 
+                                    channels = c("DAPI", "cy5_cd20", "Cy5_CD21"), 
+                                    is.RGB = FALSE)
 
 ####
 ## same section alignment ####
@@ -48,15 +51,14 @@ xen_subset <- subset(xen, image = "5149x4945+7145+4380")
 # register
 xen_subset2 <- modulateImage(xen_subset, brightness = 500)
 ome_tiff_same_vr2 <- modulateImage(ome_tiff_same_vr, brightness = 700, channel = "DAPI")
-# xen_reg <- registerSpatialData(object_list = list(ome_tiff_same_vr2, xen_subset2)) 
 xen_reg <- registerSpatialData(object_list = list(ome_tiff_same_vr2, xen_subset2),
-                               mapping_parameters = readRDS("data/Tonsil/samesection_registration_parameters.rds"), 
+                               mapping_parameters = readRDS("../data/Tonsil/samesection_registration_parameters.rds"), 
                                interactive = TRUE)
 xenium_reg <- xen_reg$registered_spat[[2]]
 
 # visualize segments
-vrImages(xenium_reg[["Assay1"]], name = "main_reg", channel = "CD20") <- vrImages(ome_tiff_same_vr, channel = "CD20")
-vrImages(xenium_reg[["Assay1"]], name = "main_reg", channel = "CD21") <- vrImages(ome_tiff_same_vr, channel = "CD21")
+vrImages(xenium_reg[["Assay1"]], name = "main_reg", channel = "CD20") <- vrImages(ome_tiff_same_vr, channel = "cy5_cd20")
+vrImages(xenium_reg[["Assay1"]], name = "main_reg", channel = "CD21") <- vrImages(ome_tiff_same_vr, channel = "Cy5_CD21")
 
 ####
 ## create and add aligned IF features ####
@@ -64,10 +66,10 @@ vrImages(xenium_reg[["Assay1"]], name = "main_reg", channel = "CD21") <- vrImage
 
 # get registered segments
 segts <- vrSegments(flipCoordinates(xenium_reg))
-generateGeoJSON(segts, "data/Tonsil/polygons.geojson")
+generateGeoJSON(segts, "../data/Tonsil/polygons.geojson")
 
 # add feature from QuPath
-datax <- read.table("data/Tonsil/measurements.txt", header = TRUE, sep = "\t")
+datax <- read.table("../data/Tonsil/measurements.txt", header = TRUE, sep = "\t")
 rownames(datax) <- datax$Name
 datax <- datax[vrSpatialPoints(xenium_reg),]
 datax <- datax[,c(11,13)]
@@ -115,9 +117,9 @@ g1 / g2
 
 xenium_reg <- saveVoltRon(xenium_reg, 
                           format = "HDF5VoltRon", 
-                          output = "data/Tonsil/Xenium_IF", 
+                          output = "../data/Tonsil/Xenium_IF", 
                           replace = TRUE)
-xenium_reg <- loadVoltRon(dir = "data/Tonsil/Xenium_IF/")
+xenium_reg <- loadVoltRon(dir = "../data/Tonsil/Xenium_IF/")
 
 ####
 ## clustering (Xenium + IF) ####
@@ -177,6 +179,32 @@ vrSpatialPlot(xenium_reg, group.by = "Clusters", group.ids = 14,
               plot.segments = TRUE)
 
 ####
+## Subclustering Germinal Center ####
+####
+
+spatialpoints <- vrSpatialPoints(xenium_reg)[xenium_reg$Clusters == 14]
+xenium_reg_subset <- subset(xenium_reg, spatialpoints = spatialpoints)
+vrSpatialPlot(xenium_reg_subset, group.by = "Clusters")
+vrEmbeddingPlot(xenium_reg_subset, group.by = "Clusters", embedding = "umap")
+xenium_reg_subset <- getClusters(xenium_reg_subset, resolution = 0.3, 
+                                 label = "SubClusters", graph = "SNN") 
+tmp <- xenium_reg_subset$SubClusters
+tmp[tmp %in% c(1,2)] <- 1
+tmp[tmp %in% c(3,4,5)] <- 2
+xenium_reg_subset$SubClusters <- tmp
+vrEmbeddingPlot(xenium_reg_subset, group.by = "SubClusters", embedding = "umap")
+vrSpatialPlot(xenium_reg_subset, group.by = "SubClusters", plot.segments = TRUE)
+vrMainFeatureType(xenium_reg_subset) <- "Protein"
+vrEmbeddingFeaturePlot(xenium_reg_subset, features = "CD21", embedding = "umap")
+vrMainFeatureType(xenium_reg_subset) <- "RNA"
+vrEmbeddingFeaturePlot(xenium_reg_subset, features = "MKI67", embedding = "umap")
+
+tmp <- setNames(xenium_reg$Clusters, vrSpatialPoints(xenium_reg))
+tmp[vrSpatialPoints(xenium_reg_subset)] <- paste0(xenium_reg_subset$Clusters, "_", xenium_reg_subset$SubClusters)
+names(tmp) <- NULL
+xenium_reg$Clusters_withsub <- tmp
+
+####
 ## marker analysis ####
 ####
 
@@ -194,7 +222,8 @@ xenium_reg_seu <- SetAssayData(
 )
 
 # xenium_reg_seu <- NormalizeData(xenium_reg_seu, scale.factor = 1000)
-Idents(xenium_reg_seu) <- "clusters_1"
+# Idents(xenium_reg_seu) <- "clusters_1"
+Idents(xenium_reg_seu) <- "Clusters_withsub"
 markers <- FindAllMarkers(xenium_reg_seu, features = Features(xenium_reg_seu))
 markers$gene_symbol <- sapply(markers$gene, function(x) strsplit(x, split = "-")[[1]][1])
 markers <- markers %>% left_join(xenium_lung[,c("Gene", "Annotation")], by = c("gene_symbol" = "Gene"))
@@ -270,6 +299,14 @@ celltypes <- c(
   "Macrophage/DC 5"
 )
 xenium_reg$CellType <- celltypes[clusters]
+
+# update germinal center
+tmp <- xenium_reg$CellType
+tmp[xenium_reg$Clusters_withsub == "14_1"] <- "GC Proliferating"
+tmp[xenium_reg$Clusters_withsub == "14_2"] <- "GC CD21+"
+xenium_reg$CellType <- tmp
+
+# make major cell types
 tmp <- xenium_reg$CellType
 tmp[grepl("B Cells", tmp)] <- "B Cells"
 tmp[grepl("T Cells", tmp)] <- "T Cells"
@@ -285,12 +322,22 @@ vrEmbeddingPlot(xenium_reg_vis,
                 pt.size = 0.4, label = TRUE)
 
 # cell type spatial
-vrSpatialPlot(xenium_reg_vis, group.by = "MajorCellType", plot.segments = TRUE, alpha = 1)
+colors <- hue_pal(length(unique(xenium_reg_vis$MajorCellType)))
+set.seed(6)
+colors <- sample(colors)
+colors <- setNames(colors, unique(xenium_reg_vis$MajorCellType))
+vrSpatialPlot(xenium_reg_vis, group.by = "MajorCellType", plot.segments = TRUE, alpha = 1, colors = colors)
 ggsave("clustering.pdf", plot = last_plot(), device = "pdf", height = 8, width = 8)
-vrSpatialPlot(xenium_reg_vis, group.by = "MajorCellType", plot.segments = TRUE, alpha = 1) + 
+vrSpatialPlot(xenium_reg_vis, group.by = "MajorCellType", plot.segments = TRUE, alpha = 1, colors = colors) + 
   theme(legend.position = "none") + 
   labs(title = "")
 ggsave("clustering_notitle.pdf", plot = last_plot(), device = "pdf", height = 8, width = 8)
+
+####
+## save voltron ####
+####
+
+xenium_reg <- saveVoltRon(xenium_reg)
 
 ####
 ## as.anndata ####
@@ -322,8 +369,11 @@ vrSpatialPlot(xenium_reg_sub, group.by = "MajorCellType", plot.segments = TRUE, 
   theme(legend.position = "none")
 ggsave("multiplex.pdf", plot = last_plot(), device = "pdf", height = 4, width = 4)
 
+# colors defined above
 vrSpatialPlot(xenium_reg_sub, group.by = "MajorCellType", plot.segments = TRUE, alpha = 1,
-                    group.ids = c("B Cells", "T Cells", "Germinal Center", "Proliferating Cells"), channel = "DAPI_new", background.color = "black")+
+                    group.ids = c("B Cells", "T Cells", "GC CD21+", "GC Proliferating", "Proliferating Cells"), 
+              channel = "DAPI_new", background.color = "black",
+              colors = colors[c("B Cells", "T Cells", "GC CD21+", "GC Proliferating", "Proliferating Cells")])+
   labs(title = "") + 
   theme(legend.position = "none")
 ggsave("celltype.pdf", plot = last_plot(), device = "pdf", height = 4, width = 4)
@@ -372,49 +422,16 @@ ggpubr::ggarrange(plotlist = g2, ncol = 3, nrow = 2)
 ####
 
 ####
-## Import IF Data ####
+## Import QuPath Data ####
 ####
 
-# adj. section IF channels
-# ome.tiff <- "Tonsil/Adjacent section/Core_13.ome.tif"
-ome.tiff <- "../../../data/Erik/Erik_Alignment_TMA/out/Adjacent section/Core_13.ome.tif"
-ome.tiff.meta <- RBioFormats::read.omexml(ome.tiff)
-ome.tiff.meta <- XML::xmlToList(ome.tiff.meta)
-
-# channel names
-channel_names <- c("DAPI", "CD20", "CD68", "CD21", "FOXP3", "CD45RB")
-
-# get channels as VoltRon object
-ome_tiff_adj_vr <- importImageData(ome.tiff, tile.size = 100, series = 1, 
-                                   resolution = 1, channels = c(1,4,7,8,11,18), 
-                                   channel_names = channel_names, 
-                                   is.RGB = FALSE, 
-                                   sample_name = "IF")
-
-# get data
-datax <- read.table(file = "data/Tonsil/IF_QuPath/measurements_adjusted.txt", header = TRUE)
-segments <- generateSegments(geojson.file = "data/Tonsil/IF_QuPath/measurements.geojson")
-segments <- segments[-1]
-coords <- sapply(segments, \(.) colMeans(.[,c("x","y")]))
-coords <- t(coords)
-
-# assign cell names
-cellID <- paste0("Cell", 1:length(segments))
-names(segments) <- cellID
-rownames(coords) <- cellID
-rownames(datax) <- cellID
-
-# get image
-channels <- lapply(channel_names, function(x){
-  vrImages(ome_tiff_adj_vr, channel = x)
-})
-names(channels) <- channel_names
-
-# make object
-adj_vr <- formVoltRon(data = t(datax), image = channels, coords = coords, 
-                      segments = segments, main.assay = "IF", 
-                      sample_name = "Xenium_IF", image_name = "main")
-adj_vr <- flipCoordinates(adj_vr)
+adj_vr <- importQuPathIF(measurements = "../data/Tonsil/IF_QuPath/measurements_adjusted.txt",
+                         segments = "../data/Tonsil/IF_QuPath/measurements.geojson", 
+                         image = "../../../../data/Erik/Erik_Alignment_TMA/out/Adjacent section/Core_13.ome.tif", 
+                         channels = c("DAPI", "CD20", "CD68", "CD21", "FOXP3", "CD45RB"),
+                         series = 1,
+                         resolution = 1, 
+                         sample_name = "IFdata")
 
 ####
 ## adjacent section alignment ####
@@ -428,10 +445,9 @@ xen_subset <- subset(xen, image = "5149x4945+7145+4380")
 # register 617.88x593.4 vs 606.95x606.8
 xen_subset2 <- modulateImage(xen_subset, brightness = 500)
 adj_vr2 <- modulateImage(adj_vr, brightness = 700, channel = "DAPI")
-# xen_reg <- registerSpatialData(object_list = list(xen_subset2, ome_tiff_adj_vr2))
 xen_reg <- registerSpatialData(object_list = list(xen_subset2, adj_vr2),
-                               mapping_parameters = readRDS("data/Tonsil/mapping.rds"), 
-                               interactive = FALSE)
+                               mapping_parameters = readRDS("../data/Tonsil/adjsection_registration_parameters.rds"),
+                               interactive = TRUE)
 xenium_reg <- xen_reg$registered_spat
 
 # merge data
@@ -486,24 +502,12 @@ g2 <- vrEmbeddingFeaturePlot(xenium_reg_sub,
                        features = c("CD21", "CD20", "FOXP3", "CD45RB"), 
                        embedding = "umap" , ncol = 2)
 g1 | g2
-
+  
 # insert clusters
 clusters <- setNames(rep("Other", length(vrSpatialPoints(xenium_reg))),
                      vrSpatialPoints(xenium_reg))
 clusters[vrSpatialPoints(xenium_reg_sub)] <- xenium_reg_sub$Clusters
 xenium_reg$annotation <- clusters
-
-# spatial plot
-g3 <- vrSpatialPlot(xenium_reg, group.by = "annotation", n.tile = 300, alpha = 1)
-
-# visualize everything
-ggpubr::ggarrange(plotlist = list(g3 / g1, g2), widths = c(1,2)) 
-
-# subsets 1, 4, 5
-g1 <- vrEmbeddingPlot(xenium_reg_sub, group.by = "Clusters", 
-                      embedding = "umap", group.ids = c(1,4,5))
-g3 <- vrSpatialPlot(xenium_reg, group.by = "annotation", n.tile = 300, alpha = 1, group.ids = c(1,4,5))
-ggpubr::ggarrange(plotlist = list(g3 / g1, g2), widths = c(1,2)) 
 
 # cell type annotation
 vrMainAssay(xenium_reg) <- "IF"
@@ -523,35 +527,59 @@ celltype[celltype == 1] <- "GC (CD45RB+)"
 xenium_reg_sub$CellType <- celltype
 
 # visualize
-vrSpatialPlot(xenium_reg, assay = "IF", group.by = "CellType")
-vrEmbeddingPlot(xenium_reg_sub, group.by = "CellType", embedding = "umap")
+vrEmbeddingPlot(xenium_reg_sub, group.by = "CellType", 
+                      embedding = "umap")
+# ggsave("protein_embedding.pdf", plot = last_plot(), device = "pdf", height = 8, width = 10)
+vrSpatialPlot(xenium_reg, group.by = "annotation",
+              plot.segments = FALSE, alpha = 1)
+# ggsave("protein_clustering.pdf", plot = last_plot(), device = "pdf", height = 8, width = 8)
+vrSpatialPlot(xenium_reg, group.by = "annotation",
+              plot.segments = FALSE, alpha = 1) + 
+  theme(legend.position = "none") + 
+  labs(title = "")
+# ggsave("protein_clustering_notitle.pdf", plot = last_plot(), device = "pdf", height = 8, width = 8)
 
 # heatmap visualization
-vrHeatmapPlot(xenium_reg, features = c("CD21", "CD20", "FOXP3", "CD45RB"), group.by = "CellType")
+# vrHeatmapPlot(xenium_reg, features = c("CD21", "CD20", "FOXP3", "CD45RB"), group.by = "CellType")
+
+# saveRDS(xenium_reg, "../data/Tonsil/xenium_reg.rds")
+xenium_reg <- readRDS("../data/Tonsil/xenium_reg.rds")
+
+# visualize non-others 
+xenium_reg_sub <- subset(xenium_reg, subset = CellType %in% unique(xenium_reg$CellType)[unique(xenium_reg$CellType) != "Other"])
+g1 <- vrEmbeddingPlot(xenium_reg_sub, group.by = "CellType", 
+                      embedding = "umap")
+g2 <- vrEmbeddingFeaturePlot(xenium_reg_sub, 
+                             features = c("CD21", "CD20", "FOXP3", "CD45RB"), 
+                             embedding = "umap" , ncol = 2)
+g3 <- vrSpatialPlot(xenium_reg, group.by = "CellType", n.tile = 300)
+g1 | g2
 
 ####
-## Niche Clustering ####
+## Neighborhood Analysis ####
 ####
 
 # get Xenium clusters
-adata <- anndataR::read_h5ad("data/Tonsil/xenium_tonsil_IF.h5ad")
+xen_if <- loadVoltRon("../data/Tonsil/Xenium_IF/")
+xen_celltype <- setNames(xen_if$MajorCellType, vrSpatialPoints(xen_if))
+xen_celltype[grepl("^GC",xen_celltype)] <- "Proliferating Cells (CD38+)"
+
+# create new column
 vrMainAssay(xenium_reg) <- "Xenium"
 celltypes <- setNames(xenium_reg$CellType,
                       vrSpatialPoints(xenium_reg))
-celltypes[adata$obs$id] <- as.character(adata$obs$CellType)
-celltypes[celltypes == ""] <- "unknown"
+celltypes[names(xen_celltype)] <- as.character(xen_celltype)
+celltypes[celltypes == ""] <- "Unknown"
 xenium_reg$CellType <- celltypes
 
 # visualize cell types of both groups
 g1 <- vrSpatialPlot(xenium_reg, assay = "IF", group.by = "CellType")
-g2 <- vrSpatialPlot(xenium_reg, assay = "Xenium", group.by = "CellType")
+g2 <- vrSpatialPlot(xenium_reg, assay = "Xenium", group.by = "CellType")c("GC (CD45RB-)", "GC (CD45RB+)")
 
 # visualize Germinal Center of both groups
-g1 <- vrSpatialPlot(xenium_reg, assay = "IF", group.by = "CellType", group.ids = "Germinal Center", n.tile = 200)
-g2 <- vrSpatialPlot(xenium_reg, assay = "Xenium", group.by = "CellType", group.ids = "Germinal Center", n.tile = 200)
+g1 <- vrSpatialPlot(xenium_reg, assay = "IF", group.by = "CellType", group.ids = c("GC (CD45RB-)", "GC (CD45RB+)"), n.tile = 200)
+g2 <- vrSpatialPlot(xenium_reg, assay = "Xenium", group.by = "CellType", group.ids = c("Proliferating Cells (CD38+)"), n.tile = 200)
 g1 | g2
-
-xenium_reg <- readRDS("data/Tonsil/xenium_reg.rds")
 
 # attach connectivity 
 # micron to pixel ratio is 0.85
@@ -564,37 +592,12 @@ xenium_reg2[["XeniumBlock"]]@adjacency[1,2] <-
 xenium_reg2 <- getSpatialNeighbors(xenium_reg2, assay = c("Assay1", "Assay2"), radius = 20, method = "radius")
 vrGraphNames(xenium_reg2)
 
-# niche assay
-xenium_reg2 <- getNicheAssay(xenium_reg2, graph.type = "radius", assay = c("Assay1", "Assay2"), label = "CellType")
-vrMainFeatureType(xenium_reg2, assay = "Xenium") <- "Niche"
-vrMainFeatureType(xenium_reg2, assay = "IF") <- "Niche"
-
-# niche clustering
-nclus <- 5
-xenium_reg3 <- getClusters(xenium_reg2, assay = c("Assay1", "Assay2"), 
-                           method = "kmeans", nclus = nclus, 
-                           label = "Niche_Clusters")
-colors <- as.list(setNames(hue_pal(nclus), 1:nclus))
-g5 <- vrSpatialPlot(xenium_reg3, assay = "IF", group.by = "Niche_Clusters", n.tile = 200, colors = colors)
-g6 <- vrSpatialPlot(xenium_reg3, assay = "Xenium", group.by = "Niche_Clusters", n.tile = 200, colors = colors)
-g5 | g6
-
-# heatmap visualization
-vrHeatmapPlot(xenium_reg3, features = vrFeatures(xenium_reg3), 
-              assay = c("Assay1", "Assay2"), group.by = "Niche_Clusters")
-
-# visualize clusters
-g1 <- vrSpatialPlot(xenium_reg3, assay = "IF", group.by = "CellType", n.tile = 200)
-g2 <- vrSpatialPlot(xenium_reg3, assay = "Xenium", group.by = "CellType", n.tile = 200)
-g1 | g2
-
-# visualize niche clusters together on germinal
-colors <- as.list(setNames(hue_pal(nclus), 1:nclus))
-g1 <- vrSpatialPlot(xenium_reg3, assay = "IF", group.by = "CellType", group.ids = "Germinal Center", n.tile = 200)
-g2 <- vrSpatialPlot(xenium_reg3, assay = "Xenium", group.by = "CellType", group.ids = "Germinal Center", n.tile = 200)
-g3 <- vrSpatialPlot(xenium_reg3, assay = "IF", group.by = "Niche_Clusters", group.ids = 5, n.tile = 200)
-g4 <- vrSpatialPlot(xenium_reg3, assay = "Xenium", group.by = "Niche_Clusters", group.ids = 5, n.tile = 200)
-g5 <- vrSpatialPlot(xenium_reg3, assay = "IF", group.by = "Niche_Clusters", n.tile = 200, colors = colors)
-g6 <- vrSpatialPlot(xenium_reg3, assay = "Xenium", group.by = "Niche_Clusters", n.tile = 200, colors = colors)
-(g1 / g2) | (g3 / g4) | (g5 / g6)
-
+# neighborhood analysis
+results <- VoltRon::vrNeighbourhoodEnrichment(xenium_reg2, group.by = list(Assay1 = "CellType", 
+                                                                           Assay2 = "CellType"), assay = c("Assay1", "Assay2"), 
+                                              num.sim = 100, graph.type = "radius")
+results_new <- results[results$from_value != "Other" & results$to_value != "Other",]
+results_new <- results_new[results_new$from_value != "Unknown" & results_new$to_value != "Unknown",]
+pdf("neighbourhood_enrichment.pdf", width = 12, height = 10)
+VoltRon::vrNeighbourhoodEnrichmentPlot(results_new, assay = c("Assay1,Assay2"))
+dev.off()
