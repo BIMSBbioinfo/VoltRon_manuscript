@@ -556,11 +556,17 @@ g3 <- vrSpatialPlot(xenium_reg, group.by = "CellType", n.tile = 300)
 g1 | g2
 
 ####
+## Load data ####
+####
+
+xenium_reg <- readRDS("../data/Tonsil/xenium_reg.rds")
+xen_if <- loadVoltRon("../data/Tonsil/Xenium_IF/")
+
+####
 ## Neighborhood Analysis ####
 ####
 
 # get Xenium clusters
-xen_if <- loadVoltRon("../data/Tonsil/Xenium_IF/")
 xen_celltype <- setNames(xen_if$MajorCellType, vrSpatialPoints(xen_if))
 xen_celltype[grepl("^GC",xen_celltype)] <- "Proliferating Cells (CD38+)"
 
@@ -601,3 +607,34 @@ results_new <- results_new[results_new$from_value != "Unknown" & results_new$to_
 pdf("neighbourhood_enrichment.pdf", width = 12, height = 10)
 VoltRon::vrNeighbourhoodEnrichmentPlot(results_new, assay = c("Assay1,Assay2"))
 dev.off()
+
+####
+## Germinal Center (Zoom-in) ####
+####
+
+# colors
+spatialpoints <- vrSpatialPoints(xenium_reg)[xenium_reg$Clusters %in% unique(xenium_reg$Clusters)[unique(xenium_reg$Clusters) != "24"]]
+xenium_reg_vis <- subset(xenium_reg, spatialpoints = spatialpoints)
+colors <- hue_pal(length(unique(xenium_reg_vis$CellType)))
+set.seed(6)
+colors <- sample(colors)
+colors <- setNames(colors, unique(xenium_reg_vis$CellType))
+
+xenium_reg_sub <- subset(xenium_reg, assay = "Xenium")
+# xenium_reg_sub <- subset(xenium_reg_sub, interactive = TRUE)
+# xenium_reg_sub$subset_info_list[[1]]
+xenium_reg_sub <- subset(xenium_reg_sub, image = "712x707+3713+2087")
+colors_vis <- colors[unique(xenium_reg_sub$CellType)]
+g1 <- vrSpatialPlot(xenium_reg_sub, plot.segments = TRUE, group.by = "CellType", colors = colors_vis, background.color = "black") 
+ggsave("xenium_zoom.pdf", plot = g1, device = "pdf", height = 4, width = 6)
+g1 <- g1 + labs(title = "") + 
+  theme(legend.position = "none")
+ggsave("xenium_zoom_nolabel.pdf", plot = g1, device = "pdf", height = 4, width = 4)
+
+xenium_reg_sub <- subset(xenium_reg, assay = "IF")
+xenium_reg_sub <- subset(xenium_reg_sub, image = "712x707+3713+2087")
+g1 <- vrSpatialPlot(xenium_reg_sub, plot.segments = TRUE, group.by = "CellType", background.color = "black")
+ggsave("if_zoom.pdf", plot = g1, device = "pdf", height = 4, width = 6)
+g1 <- g1 + labs(title = "") + 
+  theme(legend.position = "none")
+ggsave("if_zoom_nolabel.pdf", plot = g1, device = "pdf", height = 4, width = 4)

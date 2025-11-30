@@ -1,3 +1,5 @@
+library(RBioFormats)
+
 ####
 # Xenium 5000 ####
 ####
@@ -6,9 +8,18 @@
 ## Import Xenium ####
 ####
 
-
+# xenium
 Xen_R1 <- importXenium("../../../../data/xenium/Xenium_V1_mouse_pup_outs/", sample_name = "XeniumR1",
                        resolution_level = 3, overwrite_resolution = TRUE, import_molecules = FALSE)
+
+# HE image
+ome.tiff <- "../../../../data/xenium/Xenium_Prime_Mouse_Pup_FFPE_outs/Xenium_Prime_Mouse_Pup_FFPE_he_image.ome.tif"
+read.metadata(ome.tiff)
+Xen_pups_image <- importImageData("../../../../data/xenium/Xenium_Prime_Mouse_Pup_FFPE_outs/Xenium_Prime_Mouse_Pup_FFPE_he_image.ome.tif",
+                                  sample_name = "XeniumImage", 
+                                  tile.size = 100,
+                                  resolution = 3, 
+                                  series = 1)
 
 ####
 ## save to disk ####
@@ -20,7 +31,15 @@ library(ImageArray)
 
 # save to disk
 Xen_R1_disk <- saveVoltRon(Xen_R1, format = "HDF5VoltRon", output = "../data/Xenium_pups_prime", replace = TRUE)
-Xen_R1_disk <- loadVoltRon("../data/Xenium_pups_prime//")
+Xen_R1_disk <- loadVoltRon("../data/Xenium_pups_prime/")
+
+####
+## H&E registration ####
+####
+
+xen_reg <- registerSpatialData(object_list = c(Xen_R1_disk, Xen_pups_image))
+vrImages(Xen_R1_disk[["Assay1"]], channel = "H&E") <- vrImages(xen_reg$registered_spat[[2]])
+Xen_R1_disk <- saveVoltRon(Xen_R1_disk)
 
 ####
 ## Processing ####
@@ -63,14 +82,14 @@ g2 <- vrEmbeddingPlot(Xen_R1_disk, group.by = "Clusters", embedding = "umap", la
 ####
 
 # marker analysis
-xenium_markers <- read.csv("../../../test/mainWorkflows/data/Xenium_mMulti_v1_metadata_annotations.csv")
-xenium_markers2 <- read.csv("../../../test/mainWorkflows/data/XeniumPrimeMouse5Kpan_tissue_pathways_metadata.csv")
+xenium_markers <- read.csv("../../../../test/mainWorkflows/data/Xenium_mMulti_v1_metadata_annotations.csv")
+xenium_markers2 <- read.csv("../../../../test/mainWorkflows/data/XeniumPrimeMouse5Kpan_tissue_pathways_metadata.csv")
 Xen_R1_disk_seu <- as.Seurat(Xen_R1_disk, cell.assay = "Xenium", type = "image")
 Idents(Xen_R1_disk_seu) <- "Clusters"
 Xen_R1_disk_seu <- NormalizeData(Xen_R1_disk_seu, scale.factor = 10000)
 markers <- Seurat::FindAllMarkers(Xen_R1_disk_seu)
 # saveRDS(markers, file = "data/xeniumpupsprime_markers.rds")
-markers <- readRDS("data/xeniumpupsprime_markers.rds")
+markers <- readRDS("../data/xeniumpupsprime_markers.rds")
 markers <- markers %>% left_join(xenium_markers[,c("Gene", "Tissues", "Cell.types")], by = c("gene" = "Gene"))
 markers <- markers %>% left_join(xenium_markers2[,c("gene_name", "cell_type")], by = c("gene" = "gene_name"))
 topmarkers <- markers %>%
@@ -82,7 +101,7 @@ topmarkers <- markers %>%
 ## annotation ####
 ####
 
-Xen_R1_disk2 <- loadVoltRon("data/Xenium_pups_prime/")
+Xen_R1_disk2 <- loadVoltRon("../data/Xenium_pups_prime/")
 vrSpatialPlot(Xen_R1_disk, group.by = "Clusters", n.tile = 400, alpha = 1, legend.loc = "none", group.ids = "1")
 # cluster 1 - Skin (Epidermis)
 # cluster 2 - Adipose
@@ -131,5 +150,6 @@ annotation <- c(
   "Lung"
 )
 Xen_R1_disk$CellType <- annotation[as.numeric(Xen_R1_disk$Clusters)]
-
+markers$annotation <- annotation[as.numeric(as.character(markers$cluster))]
+saveRDS(markers, file = "../data/xeniumpupsprime_markers_annotated.rds")
 vrSpatialPlot(Xen_R1_disk, group.by = "CellType", n.tile = 400, alpha = 1, legend.loc = "none")

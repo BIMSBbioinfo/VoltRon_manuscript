@@ -14,14 +14,14 @@ Xen_pups <- importXenium("../../../../data/xenium/Xenium_Prime_Mouse_Pup_FFPE_ou
 ome.tiff <- "../../../../data/xenium/Xenium_Prime_Mouse_Pup_FFPE_outs/Xenium_Prime_Mouse_Pup_FFPE_he_image.ome.tif"
 read.metadata(ome.tiff)
 Xen_pups_image <- importImageData("../../../../data/xenium/Xenium_Prime_Mouse_Pup_FFPE_outs/Xenium_Prime_Mouse_Pup_FFPE_he_image.ome.tif",
-                                  sample_name = "XeniumImage",
-                                  channel_names = "H&E", 
+                                  sample_name = "XeniumImage", 
                                   tile.size = 100,
                                   resolution = 3, 
                                   series = 1)
 
 # register
-# xen_reg <- registerSpatialData(object_list = c(Xen_pups_image, Xen_pups))
+# xen_reg <- registerSpatialData(object_list = c(Xen_pups_image, Xen_pups),
+#                                mapping_parameters = readRDS("data/xenium_pups_parameters.rds"))
 # saveRDS(xen_reg$mapping_parameters, file = "data/xenium_pups_parameters.rds")
 mapping_parameters <- readRDS("data/xenium_pups_parameters.rds")
 img <- vrImages(Xen_pups_image)
