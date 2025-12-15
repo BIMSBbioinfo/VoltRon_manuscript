@@ -480,8 +480,13 @@ vrEmbeddingFeaturePlot(xenium_reg, features = vrFeatures(xenium_reg),
 
 # clustering k means
 xenium_reg <- getClusters(xenium_reg, method = "kmeans", nclus = 7, label = "Clusters")
-vrEmbeddingPlot(xenium_reg, group.by = "Clusters", assay = "IF",
+g1 <- vrEmbeddingPlot(xenium_reg, group.by = "Clusters", assay = "IF",
                 embedding = "umap")
+g2 <- vrSpatialPlot(xenium_reg, group.by = "Clusters", assay = "IF")
+g3 <- vrEmbeddingPlot(xenium_reg, group.by = "Clusters", assay = "IF",
+                      embedding = "umap", group.ids = c(4,5))
+g4 <- vrSpatialPlot(xenium_reg, group.by = "Clusters", assay = "IF", group.ids = c(4,5), plot.segments = TRUE)
+(g1 | g2) / (g3 | g4)
 
 # subclustering
 xenium_reg_sub <- subset(xenium_reg, subset = Clusters %in% c(1,2,3,5,6))
@@ -506,13 +511,14 @@ g1 | g2
 # insert clusters
 clusters <- setNames(rep("Other", length(vrSpatialPoints(xenium_reg))),
                      vrSpatialPoints(xenium_reg))
+clusters[xenium_reg$Clusters == 4] <- "B Cells"
 clusters[vrSpatialPoints(xenium_reg_sub)] <- xenium_reg_sub$Clusters
 xenium_reg$annotation <- clusters
 
 # cell type annotation
 vrMainAssay(xenium_reg) <- "IF"
 celltype <- xenium_reg$annotation 
-celltype[celltype == 5] <- "Follicular dendritic cells"
+celltype[celltype == 5] <- "Follicular Dendritic Cells"
 celltype[celltype == 7] <- "FOXP3+"
 celltype[celltype %in% c(2,3,6)] <- "B Cells"
 celltype[celltype == 4] <- "GC (CD45RB-)"
@@ -527,17 +533,19 @@ celltype[celltype == 1] <- "GC (CD45RB+)"
 xenium_reg_sub$CellType <- celltype
 
 # visualize
+colors <- hue_pal(length(unique(xenium_reg$CellType)))
+names(colors) <- c(unique(xenium_reg$CellType))
 vrEmbeddingPlot(xenium_reg_sub, group.by = "CellType", 
-                      embedding = "umap")
-# ggsave("protein_embedding.pdf", plot = last_plot(), device = "pdf", height = 8, width = 10)
-vrSpatialPlot(xenium_reg, group.by = "annotation",
+                      embedding = "umap", colors = colors[names(colors) %in% unique(xenium_reg_sub$CellType)])
+ggsave("protein_embedding.pdf", plot = last_plot(), device = "pdf", height = 8, width = 10)
+vrSpatialPlot(xenium_reg, group.by = "CellType",
               plot.segments = FALSE, alpha = 1)
-# ggsave("protein_clustering.pdf", plot = last_plot(), device = "pdf", height = 8, width = 8)
-vrSpatialPlot(xenium_reg, group.by = "annotation",
+ggsave("protein_clustering.pdf", plot = last_plot(), device = "pdf", height = 8, width = 8)
+vrSpatialPlot(xenium_reg, group.by = "CellType",
               plot.segments = FALSE, alpha = 1) + 
   theme(legend.position = "none") + 
   labs(title = "")
-# ggsave("protein_clustering_notitle.pdf", plot = last_plot(), device = "pdf", height = 8, width = 8)
+ggsave("protein_clustering_notitle.pdf", plot = last_plot(), device = "pdf", height = 8, width = 8)
 
 # heatmap visualization
 # vrHeatmapPlot(xenium_reg, features = c("CD21", "CD20", "FOXP3", "CD45RB"), group.by = "CellType")

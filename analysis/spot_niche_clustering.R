@@ -10,22 +10,16 @@ library(dplyr)
 ## Import data ####
 ####
 
-DLPFC_1 <- importVisium("../../../data/10X_Visium_DLPFC/151673", sample_name = "DLPFC_1")
-DLPFC_2 <- importVisium("../../../data/10X_Visium_DLPFC/151674", sample_name = "DLPFC_2")
-DLPFC_3 <- importVisium("../../../data/10X_Visium_DLPFC/151675", sample_name = "DLPFC_3")
-DLPFC_4 <- importVisium("../../../data/10X_Visium_DLPFC/151676", sample_name = "DLPFC_4")
-
-DLPFC_list <- list(DLPFC_1, DLPFC_2, DLPFC_3, DLPFC_4)
-DLPFC_merged <- merge(DLPFC_list[[1]], DLPFC_list[-1])
+DLPFC_merged <- readRDS("../data/DLFPC/Visium&Visium_data_decon_registered.rds")
 
 ####
 ## get ground truth ####
 ####
 
-DLPFC_1_labels <- readRDS("data/DLFPC/151673_labels.rds")
-DLPFC_2_labels <- readRDS("data/DLFPC/151673_labels.rds")
-DLPFC_3_labels <- readRDS("data/DLFPC/151673_labels.rds")
-DLPFC_4_labels <- readRDS("data/DLFPC/151673_labels.rds")
+DLPFC_1_labels <- readRDS("../data/DLFPC/151673_labels.rds")
+DLPFC_2_labels <- readRDS("../data/DLFPC/151674_labels.rds")
+DLPFC_3_labels <- readRDS("../data/DLFPC/151675_labels.rds")
+DLPFC_4_labels <- readRDS("../data/DLFPC/151676_labels.rds")
 names(DLPFC_1_labels) <- paste0(names(DLPFC_1_labels) , "_Assay1")
 names(DLPFC_2_labels) <- paste0(names(DLPFC_2_labels) , "_Assay2")
 names(DLPFC_3_labels) <- paste0(names(DLPFC_3_labels) , "_Assay3")
@@ -41,48 +35,72 @@ DLPFC_merged$Layers <- tmp
 # visualize
 vrSpatialPlot(DLPFC_merged, group.by = "Layers", ncol = 2)  
 
-####
-## get reference ####
-####
-
-load("../../../data/10X_Visium_DLPFC/SCE_DLPFC-n3_tran-etal.rda")
-
-####
-## Deconvolution ####
-####
-
-# prepare reference
-tab <- table(sce.dlpfc.tran$cellType)
-sce.dlpfc.tran <- sce.dlpfc.tran[,sce.dlpfc.tran$cellType %in% names(tab)[tab > 25]]
-
-# Deconvolute Visium spots
-library(spacexr)
-DLPFC_merged <- getDeconvolution(DLPFC_merged, sc.object = sce.dlpfc.tran, sc.cluster = "cellType", max_cores = 6)
-# saveRDS(DLPFC_merged, file = "data/DLFPC/DLPFC_merged_decon.rds")
-DLPFC_merged <- readRDS("data/DLFPC/DLPFC_merged_decon.rds")
-
 # Visualize
 vrMainFeatureType(DLPFC_merged) <- "Decon"
-vrSpatialFeaturePlot(DLPFC_merged, features = c("Astro", "OPC", "Excit_E", "Excit_A"),
-                     crop = TRUE, ncol = 4, alpha = 1, keep.scale = "all")
+vrSpatialFeaturePlot(DLPFC_merged, assay = c("Assay1", "Assay4"), 
+                     features = c("Excit_E", "Excit_A", "Inhib_C"),
+                     crop = TRUE, ncol = 3, alpha = 1, keep.scale = "all")
 
 ####
-## Niche Assay from Decon ####
+## 2D Clustering ####
+####
+
+# remove adjacency in the tissue block
+tmp <- DLPFC_merged@samples$DLPFC_Block@adjacency
+tmp[1:4,1:4] <- diag(4)
+DLPFC_merged@samples$DLPFC_Block@adjacency <- tmp
+
+####
+### Niche Assay from Decon ####
 ####
 
 DLPFC_merged <- getSpatialNeighbors(DLPFC_merged, method = "radius")
 vrMainFeatureType(DLPFC_merged) <- "Decon"
 DLPFC_merged <- getNicheAssay(DLPFC_merged, graph.type = "radius")
+vrMainFeatureType(DLPFC_merged) <- "Niche"
 
 ####
-## Processing ####
+### Processing ####
 ####
 
 vrMainFeatureType(DLPFC_merged) <- "Niche"
 DLPFC_merged <- normalizeData(DLPFC_merged, method = "CLR")
 
 ####
-## Visualization ####
+### Clustering ####
+####
+
+# clustering K Means
+DLPFC_merged <- getClusters(DLPFC_merged, method = "kmeans", nclus = 7, label = "clusters_kmeans")
+
+colors <- hue_pal(7)
+names(colors) <- c(5,7,6,2,4,1,3)
+vrSpatialPlot(DLPFC_merged, group.by = "clusters_kmeans", alpha = 1, nrow = 2, crop = TRUE, colors = colors)
+ggsave(filename = "../../Nature Methods Revision/Images/integration/images/registeration/registeration_visium/DLPFC_nicheclusters_2d.pdf", 
+       plot = last_plot(), device = "pdf", width = 10, height = 8, units = "in")
+
+####
+## 3D Clustering ####
+####
+
+####
+### Niche Assay from Decon ####
+####
+
+DLPFC_merged <- getSpatialNeighbors(DLPFC_merged, method = "radius")
+vrMainFeatureType(DLPFC_merged) <- "Decon"
+DLPFC_merged <- getNicheAssay(DLPFC_merged, graph.type = "radius")
+vrMainFeatureType(DLPFC_merged) <- "Niche"
+
+####
+### Processing ####
+####
+
+vrMainFeatureType(DLPFC_merged) <- "Niche"
+DLPFC_merged <- normalizeData(DLPFC_merged, method = "CLR")
+
+####
+### Clustering ####
 ####
 
 # embedding
@@ -113,7 +131,8 @@ membership[clusters$names] <- clusters$membership
 DLPFC_merged <- addMetadata(DLPFC_merged, value = membership, label = "clusters_hierjsd")
 
 # save clustered
-saveRDS(DLPFC_merged, file = "data/DLFPC/DLPFC_merged_nicheclustered.rds")
+# saveRDS(DLPFC_merged, file = "data/DLFPC/DLPFC_merged_nicheclustered.rds")
+# DLPFC_merged <- readRDS("../data/DLFPC/DLPFC_merged_nicheclustered.rds")
 
 # visualize assay 1
 g_list <- list()
@@ -124,17 +143,20 @@ g_list[[4]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay1", group.by = "cluster
 g_list[[5]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay1", group.by = "Layers", ncol = 1)
 ggpubr::ggarrange(plotlist = g_list, ncol = 3, nrow = 2)
 
-# visualize assay 1
-g_list <- list()
-g_list[[1]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "clusters_SNN", ncol = 1)
-g_list[[2]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "clusters_kmeans", ncol = 1)
-g_list[[3]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "clusters_hier", ncol = 1)
-g_list[[4]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "clusters_hierjsd", ncol = 1)
-g_list[[5]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "Layers", ncol = 1)
-ggpubr::ggarrange(plotlist = g_list, ncol = 3, nrow = 2)
+# visualize assay 4
+g_list2 <- list()
+g_list2[[1]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "clusters_SNN", ncol = 1)
+g_list2[[2]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "clusters_kmeans", ncol = 1)
+g_list2[[3]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "clusters_hier", ncol = 1)
+g_list2[[4]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "clusters_hierjsd", ncol = 1)
+g_list2[[5]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "Layers", ncol = 1)
+ggpubr::ggarrange(plotlist = g_list2, ncol = 3, nrow = 2)
+
+g_list_all <- c(g_list, g_list2)
+ggpubr::ggarrange(plotlist = g_list_all, ncol = 5, nrow = 2)
 
 ####
-## Heatmap ####
+### Heatmap ####
 ####
 
 # visualize heatmap

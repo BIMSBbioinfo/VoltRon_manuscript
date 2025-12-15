@@ -1,4 +1,5 @@
 library(RBioFormats)
+library(xlsx)
 
 ####
 # Xenium 5000 ####
@@ -150,6 +151,11 @@ annotation <- c(
   "Lung"
 )
 Xen_R1_disk$CellType <- annotation[as.numeric(Xen_R1_disk$Clusters)]
-markers$annotation <- annotation[as.numeric(as.character(markers$cluster))]
-saveRDS(markers, file = "../data/xeniumpupsprime_markers_annotated.rds")
 vrSpatialPlot(Xen_R1_disk, group.by = "CellType", n.tile = 400, alpha = 1, legend.loc = "none")
+
+# annotate marker table
+markers$annotation <- annotation[as.numeric(as.character(markers$cluster))]
+topmarkers$annotation <- annotation[as.numeric(as.character(topmarkers$cluster))]
+saveRDS(markers, file = "../data/xeniumpupsprime_markers_annotated.rds")
+write.xlsx(markers,  file = "../data/xeniumpupsprime_markers_annotated.xlsx", sheetName = "all_markers", row.names = FALSE)
+write.xlsx(as.data.frame(topmarkers),  file = "../data/xeniumpupsprime_markers_annotated.xlsx", sheetName = "top_markers", row.names = FALSE, append = TRUE)
