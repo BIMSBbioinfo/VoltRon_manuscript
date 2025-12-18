@@ -134,26 +134,32 @@ DLPFC_merged <- addMetadata(DLPFC_merged, value = membership, label = "clusters_
 # saveRDS(DLPFC_merged, file = "data/DLFPC/DLPFC_merged_nicheclustered.rds")
 # DLPFC_merged <- readRDS("../data/DLFPC/DLPFC_merged_nicheclustered.rds")
 
+# colors
+colors_layer <- hue_pal(8)
+names(colors_layer) <- unique(DLPFC_merged$Layers)
+
 # visualize assay 1
 g_list <- list()
 g_list[[1]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay1", group.by = "clusters_SNN", ncol = 1)
 g_list[[2]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay1", group.by = "clusters_kmeans", ncol = 1)
 g_list[[3]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay1", group.by = "clusters_hier", ncol = 1)
 g_list[[4]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay1", group.by = "clusters_hierjsd", ncol = 1)
-g_list[[5]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay1", group.by = "Layers", ncol = 1)
+g_list[[5]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay1", group.by = "Layers", ncol = 1, colors = colors_layer)
 ggpubr::ggarrange(plotlist = g_list, ncol = 3, nrow = 2)
 
 # visualize assay 4
 g_list2 <- list()
-g_list2[[1]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "clusters_SNN", ncol = 1)
-g_list2[[2]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "clusters_kmeans", ncol = 1)
-g_list2[[3]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "clusters_hier", ncol = 1)
-g_list2[[4]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "clusters_hierjsd", ncol = 1)
-g_list2[[5]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay4", group.by = "Layers", ncol = 1)
+g_list2[[1]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay3", group.by = "clusters_SNN", ncol = 1)
+g_list2[[2]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay3", group.by = "clusters_kmeans", ncol = 1)
+g_list2[[3]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay3", group.by = "clusters_hier", ncol = 1)
+g_list2[[4]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay3", group.by = "clusters_hierjsd", ncol = 1)
+g_list2[[5]] <- vrSpatialPlot(DLPFC_merged, assay = "Assay3", group.by = "Layers", ncol = 1, colors = colors_layer)
 ggpubr::ggarrange(plotlist = g_list2, ncol = 3, nrow = 2)
 
 g_list_all <- c(g_list, g_list2)
 ggpubr::ggarrange(plotlist = g_list_all, ncol = 5, nrow = 2)
+ggsave(filename = "../../Nature Methods Revision/Images/Supplementary Material/SpatiallyAwareAnalysis/spot_comparison.pdf", 
+       plot = last_plot(), device = "pdf", width = 30, height = 10, units = "in")
 
 ####
 ### Heatmap ####
@@ -169,6 +175,8 @@ g1 + g2 + g3
 ## ARI ####
 ####
 
+sample_metadata <- SampleMetadata(DLPFC_merged)
+sample_metadata <- data.frame(sample_metadata, labels = c("151673", "151674", "151675", "151676"))
 metadata <- Metadata(DLPFC_merged)
 variables <- colnames(metadata)
 variables <- variables[grepl("Layers|^clusters", variables)]
@@ -184,5 +192,25 @@ for(assy in unique(metadata$assay_id)){
     }
   }
   rownames(results) <- colnames(results) <- variables
-  results_list[[assy]] <- results
+  results_list[[sample_metadata[assy, "labels"]]] <- results[-1,"Layers"]
 }
+results_list <- do.call(results_list, what = "rbind")
+
+# visualize
+results_list <- reshape2::melt(results_list)
+colnames(results_list) <- c("Sample", "Method", "ARI")
+tmp <- results_list$Sample
+tmp <- factor(tmp, levels = c("151673", "151674", "151675", "151676"))
+results_list$Sample <- tmp
+ggplot(results_list, aes(x = Method, y = ARI, fill = Sample)) + 
+  geom_bar(size = 5, stat = "identity", position = position_dodge()) + 
+  theme_bw() + 
+  theme(axis.text.x=element_text(angle=45, hjust=1, vjust = 1)) +
+  ylab("") + xlab("")+
+  theme_classic() + 
+  ylim(0,0.8) + 
+  theme(axis.text.x = element_text(size=7, angle=45, hjust=1, vjust = 1),
+        axis.text.y = element_text(size=7)) +
+  scale_fill_manual(values = c("#440154", "#21908C", "#FDE725", "purple")) 
+ggsave(filename = "../../Nature Methods Revision/Images/Supplementary Material/SpatiallyAwareAnalysis/spot_comparison_ARI.pdf", 
+       plot = last_plot(), device = "pdf", width = 5, height = 4, units = "in")
