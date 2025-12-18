@@ -1,0 +1,26 @@
+(CenterOfRotationPoint 299.5 271)
+(Direction 1 0 0 1)
+(FixedImageDimension 2)
+(FixedInternalImagePixelType "float")
+(HowToCombineTransforms "Compose")
+(Index 0 0)
+(InitialTransformParameterFileName "NoInitialTransform")
+(MovingImageDimension 2)
+(MovingInternalImagePixelType "float")
+(NumberOfParameters 3)
+(Origin 0 0)
+(Size 600 543)
+(Spacing 1 1)
+(Transform "EulerTransform")
+(TransformParameters -0.053751235418110284 -61.59719304058542 -209.94869070159044)
+(UseDirectionCosines "true")
+
+// ResampleInterpolator specific
+(ResampleInterpolator "FinalNearestNeighborInterpolator")
+
+// Resampler specific
+(CompressResultImage "true")
+(DefaultPixelValue 0)
+(Resampler "DefaultResampler")
+(ResultImageFormat "mha")
+(ResultImagePixelType "float")

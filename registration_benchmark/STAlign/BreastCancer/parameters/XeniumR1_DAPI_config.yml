@@ -1,0 +1,13 @@
+name: XeniumR1_vs_DAPI
+cells: ../../../../ImageAlignmentBenchmark/data/BreastCancer/Xenium_R1/Xenium/cells.csv.gz
+target_image: ../../../../ImageAlignmentBenchmark/data/BreastCancer/Xenium_R1/IF/DAPI.tiff
+source_image: ../../../../ImageAlignmentBenchmark/data/BreastCancer/Xenium_R1/Xenium/image_3.tiff
+affine_target_landmarks: ../../landmarks/BreastCancer/XeniumR1_vs_DAPI/STAlign/affine_target_landmarks.csv
+affine_source_landmarks: ../../landmarks/BreastCancer/XeniumR1_vs_DAPI/STAlign/affine_source_landmarks.csv
+valid_target_landmarks: ../../landmarks/BreastCancer/XeniumR1_vs_DAPI/Xenium_DAPI_landmarks.csv
+valid_source_landmarks: ../../landmarks/BreastCancer/XeniumR1_vs_DAPI/Xenium_R1_image_3.csv
+niter: 100
+sigmaM: 0.15
+sigmaB: 0.10
+sigmaA: 0.11
+epV: 10

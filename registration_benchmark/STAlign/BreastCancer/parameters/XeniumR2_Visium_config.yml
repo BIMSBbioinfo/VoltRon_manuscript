@@ -1,0 +1,15 @@
+name: XeniumR2_vs_Visium
+cells: ../../../../ImageAlignmentBenchmark/data/BreastCancer/Xenium_R2/Xenium/cells.csv.gz
+target_image: ../../../../ImageAlignmentBenchmark/data/BreastCancer/Visium/tissue_hires_image.png
+source_image: ../../../../ImageAlignmentBenchmark/data/BreastCancer/Xenium_R2/Xenium/image_3.tiff
+affine_target_landmarks: ../../landmarks/BreastCancer/XeniumR2_vs_Visium/STAlign/visium_points.npy
+affine_source_landmarks: ../../landmarks/BreastCancer/XeniumR2_vs_Visium/STAlign/xenium_points.npy
+niter: 500
+sigmaP: 2e-1
+sigmaM: 0.2
+sigmaB: 0.3
+sigmaA: 0.3
+epV: 5e1
+epT: 5e-4
+epL: 5e-11
+diffeo_start: 100

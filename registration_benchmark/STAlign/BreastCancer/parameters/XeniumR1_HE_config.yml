@@ -1,0 +1,15 @@
+name: XeniumR1_vs_HE
+cells: ../../../../ImageAlignmentBenchmark/data/BreastCancer/Xenium_R1/Xenium/cells.csv.gz
+target_image: ../../../../ImageAlignmentBenchmark/data/BreastCancer/Xenium_R1/HE/Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image_highres.tif
+source_image: ../../../../ImageAlignmentBenchmark/data/BreastCancer/Xenium_R1/Xenium/image_3.tiff
+# pointsI = np.array([[1050.,950.], [700., 2200.], [500., 1550.], [1550., 1840.]])*3
+# pointsJ = np.array([[3108.,2100.], [4480., 6440.], [5040., 4200.], [1260., 5320.]])
+affine_target_landmarks: ../../landmarks/BreastCancer/XeniumR1_vs_HE/STAlign/affine_target_landmarks.csv
+affine_source_landmarks: ../../landmarks/BreastCancer/XeniumR1_vs_HE/STAlign/affine_source_landmarks.csv
+valid_target_landmarks: ../../landmarks/BreastCancer/XeniumR1_vs_HE/Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image_highres_landmarks.csv
+valid_source_landmarks: ../../landmarks/BreastCancer/XeniumR1_vs_HE/Xenium_R1_image_3.csv
+niter: 100
+sigmaM: 0.15
+sigmaB: 0.10
+sigmaA: 0.11
+epV: 10

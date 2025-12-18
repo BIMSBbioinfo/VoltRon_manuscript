@@ -1,0 +1,13 @@
+name: LungTMA7_DAPI_vs_HE
+cells: ../../../../ImageAlignmentBenchmark/data/LungTMA/Xenium/lungTMA_Assay7coords.csv
+target_image: ../../../../ImageAlignmentBenchmark/data/LungTMA/HE/lungTMA_7.jpg
+source_image: ../../../../ImageAlignmentBenchmark/data/LungTMA/Xenium/lungTMA_Assay7.tif
+affine_target_landmarks: ../../landmarks/LungTMA/lungTMA7/lungTMA7_HE_annotator_image_point.csv
+affine_source_landmarks: ../../landmarks/LungTMA/lungTMA7/lungTMA7_DAPI_annotator_image_point.csv
+valid_target_landmarks: ../../landmarks/LungTMA/lungTMA7/HE_landmarks_corrected.csv
+valid_source_landmarks: ../../landmarks/LungTMA/lungTMA7/Xenium_landmarks_corrected.csv
+niter: 1000
+sigmaM: 0.15
+sigmaB: 0.10
+sigmaA: 0.11
+epV: 10

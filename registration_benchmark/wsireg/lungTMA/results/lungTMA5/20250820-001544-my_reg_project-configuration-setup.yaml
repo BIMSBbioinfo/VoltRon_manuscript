@@ -1,0 +1,86 @@
+project_name: my_reg_project
+output_dir: results/lungTMA5
+cache_images: true
+modalities:
+  modality_fluo:
+    image_filepath: results/lungTMA5/input.tiff
+    image_res: 1
+    channel_names: null
+    channel_colors: null
+    preprocessing:
+      image_type: BF
+      invert_intensity: true
+    mask: null
+    output_res: null
+  modality_brightfield:
+    image_filepath: results/lungTMA5/output.tiff
+    image_res: 1
+    channel_names: null
+    channel_colors: null
+    preprocessing: {}
+    mask: null
+    output_res: null
+reg_paths:
+  reg_path_0:
+    src_modality_name: modality_fluo
+    tgt_modality_name: modality_brightfield
+    thru_modality: null
+    reg_params:
+    - rigid
+    - nl
+reg_graph_edges: null
+original_size_transforms: null
+attachment_shapes:
+  Xenium_landmarks:
+    shape_files:
+      array: !!python/object/apply:numpy._core.multiarray._reconstruct
+        args:
+        - !!python/name:numpy.ndarray ''
+        - !!python/tuple
+          - 0
+        - !!binary |
+          Yg==
+        state: !!python/tuple
+        - 1
+        - !!python/tuple
+          - 60
+          - 2
+        - !!python/object/apply:numpy.dtype
+          args:
+          - f8
+          - false
+          - true
+          state: !!python/tuple
+          - 3
+          - <
+          - null
+          - null
+          - null
+          - -1
+          - -1
+          - 0
+        - true
+        - !!binary |
+          g2JMKnyqskCdedY1aKqxQOdXT25CPbVApkOUKdAnt0CUw/5RK+i0QPvPiMaDY7ZAJNUuv948tkCG
+          0uXruEC1QNTOpYLPSLNAFY4VSd3EsUCHqVGT9lKrQMzNgGB8yqJATXp5KMlOnUCHB22JTBOVQPui
+          Z6GNaoxADz/32U12hUC4R0C9WaRxQGfwRSjvBINAyreYe1t1iUCvkUBHt1CUQEORKa3HqpRAzGMI
+          jkOlmkBEov3bstCiQLgo/gA1MqlAJcIh8epeoUBOs5PrBG2vQL7rktF/RqpApo0kCGsIr0AnASYl
+          206yQN1N6PJaBp9ACXpvNNK8pkDXVP4ZGqSqQFAcvSDB4JRAGAFTi/qMl0C7eGEWQeCbQLOGnDzD
+          dbRALkRjL1YNpkDN3ojy0LqgQF8Ho84xiKJABPqaJ4OJp0Bake7Irm2uQAFgfhOYD7JAVqlebmeB
+          pUCGTDOklM6pQJy+iTw8VqpAzqumOLg4r0CDbXJ9fbarQD7bDxHmW7FAtchSLLnqsUBzT/EI33aw
+          QGR7wkDv4LBAQ7ZJpq13okCpHg/p6FqiQNHBPNDoTbBAjRf7lI6Xs0BoQpuV26ONQLhmZWbs5bdA
+          enRua5oBqEBrnv9/U6qzQNXtJ/FR/ZRACqXMmeoes0Ce0hz0cbW0QJgZXNE28LFA7aMfzKXErkCf
+          OMIaIAeuQOAYBjUivqZA6saiBue+oUC0RRK6PKCXQOggLWn+0o5AaJZ6Bs67gkDwu8E8x098QGgs
+          kFzVB4JA6DyjekvMi0B4kafRPfSTQFhgEcHK+5xA/2Ji5d2Fo0A+zHBZTFehQARRUDpkOadAJafA
+          E15crkDsewLY/OixQJvrj8skBLRAtTxq5+BTtECo1hZsb+G0QDxS/fBoCbdAVtEwBtw7tkAIyEWS
+          QSS3QP77IWXBTbRASqLySm7nskBk1fSIbAWwQBRualfnAbFAvhemSVqPsUB5HEPWYueuQNe5cSTu
+          V6xAoWdQQB1XpUCIy5ZRaNCaQCZPm+l7JqVAhPAVm0W2kkCtVevfmEqrQLs26XCDjKRAdOj0BVDb
+          mUDQ/c1yQGCMQGSDNs3uqapAjmJvmKk8qkC2VJSBXCSoQIbclaji3KFAWcngCw5BqkC8Y9kVRTCb
+          QPQD27EbYpRAmmEaO7h6o0BSwSWjbBakQNQD7pJ4J51AtL0Y9RROnkB5RWwHUKauQOiruyQdTLBA
+          UxGfYobqtEASKEvohfyxQN+yJG824KlAgLjNr9XfeUDU4zab+W2dQFRcC+mhkqBA
+      shape_type: Point
+      shape_name: Xenium_landmarks
+    image_res: 1
+    attachment_modality: modality_fluo
+attachment_images: null
+merge_modalities: {}

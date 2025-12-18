@@ -1,0 +1,98 @@
+project_name: my_reg_project
+output_dir: results/HE_vs_XeniumR1
+cache_images: true
+modalities:
+  modality_fluo:
+    image_filepath: results/HE_vs_XeniumR1/input.tiff
+    image_res: 1
+    channel_names: null
+    channel_colors: null
+    preprocessing:
+      invert_intensity: true
+    mask: null
+    output_res: null
+  modality_brightfield:
+    image_filepath: results/HE_vs_XeniumR1/output.tiff
+    image_res: 1
+    channel_names: null
+    channel_colors: null
+    preprocessing:
+      image_type: BF
+    mask: null
+    output_res: null
+reg_paths:
+  reg_path_0:
+    src_modality_name: modality_fluo
+    tgt_modality_name: modality_brightfield
+    thru_modality: null
+    reg_params:
+    - rigid
+    - nl
+reg_graph_edges: null
+original_size_transforms: null
+attachment_shapes:
+  Xenium_landmarks:
+    shape_files:
+      array: !!python/object/apply:numpy._core.multiarray._reconstruct
+        args:
+        - !!python/name:numpy.ndarray ''
+        - !!python/tuple
+          - 0
+        - !!binary |
+          Yg==
+        state: !!python/tuple
+        - 1
+        - !!python/tuple
+          - 100
+          - 2
+        - !!python/object/apply:numpy.dtype
+          args:
+          - f8
+          - false
+          - true
+          state: !!python/tuple
+          - 3
+          - <
+          - null
+          - null
+          - null
+          - -1
+          - -1
+          - 0
+        - true
+        - !!binary |
+          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
+          z/KwQA==
+      shape_type: Point
+      shape_name: Xenium_landmarks
+    image_res: 1
+    attachment_modality: modality_fluo
+attachment_images: null
+merge_modalities: {}
