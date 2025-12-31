@@ -5,6 +5,7 @@ library(mclust)
 library(Seurat)
 library(dplyr)
 library(RBioFormats)
+library(xlsx)
 
 ####
 # Import Xenium ####
@@ -331,7 +332,33 @@ ggsave("clustering.pdf", plot = last_plot(), device = "pdf", height = 8, width =
 vrSpatialPlot(xenium_reg_vis, group.by = "MajorCellType", plot.segments = TRUE, alpha = 1, colors = colors) + 
   theme(legend.position = "none") + 
   labs(title = "")
-ggsave("clustering_notitle.pdf", plot = last_plot(), device = "pdf", height = 8, width = 8)
+# ggsave("clustering_notitle.pdf", plot = last_plot(), device = "pdf", height = 8, width = 8)
+
+####
+### marker Analysis ####
+####
+
+# marker analysis
+datax <- vrData(xenium_reg, feat_type = vrFeatureTypeNames(xenium_reg), norm = TRUE)
+xenium_reg_seu <- CreateSeuratObject(as(datax, "dgCMatrix"), meta.data = as.data.frame(Metadata(xenium_reg)))
+xenium_reg_seu$clusters_1 <- as.character(xenium_reg_seu$clusters_1)
+new_datax <- datax
+rownames(new_datax) <- rownames(xenium_reg_seu)
+xenium_reg_seu <- SetAssayData(
+  object = xenium_reg_seu,
+  layer = "data",
+  new.data = as(new_datax,"dgCMatrix"),
+  assay = "RNA"
+)
+Idents(xenium_reg_seu) <- "CellType"
+markers <- FindAllMarkers(xenium_reg_seu, features = Features(xenium_reg_seu))
+markers$gene_symbol <- sapply(markers$gene, function(x) strsplit(x, split = "-")[[1]][1])
+topmarkers <- markers %>%
+  group_by(cluster) %>%
+  dplyr::filter(avg_log2FC > 0.3, p_val_adj < 0.05, pct.1 > 0.5)
+# write.xlsx(as.data.frame(topmarkers), 
+#            file = "../../Nature Methods Revision/supp table/Supplementary Table 4.xlsx", 
+#            sheetName = "with_mIF")
 
 ####
 ## save voltron ####
@@ -646,3 +673,28 @@ ggsave("if_zoom.pdf", plot = g1, device = "pdf", height = 4, width = 6)
 g1 <- g1 + labs(title = "") + 
   theme(legend.position = "none")
 ggsave("if_zoom_nolabel.pdf", plot = g1, device = "pdf", height = 4, width = 4)
+
+####
+## marker analysis ####
+####
+
+# marker analysis
+datax <- vrData(xenium_reg, feat_type = vrFeatureTypeNames(xenium_reg), norm = TRUE)
+xenium_reg_seu <- CreateSeuratObject(as(datax, "dgCMatrix"), meta.data = as.data.frame(Metadata(xenium_reg)))
+new_datax <- datax
+rownames(new_datax) <- rownames(xenium_reg_seu)
+xenium_reg_seu <- SetAssayData(
+  object = xenium_reg_seu,
+  layer = "data",
+  new.data = as(new_datax,"dgCMatrix"),
+  assay = "RNA"
+)
+Idents(xenium_reg_seu) <- "CellType"
+markers <- FindAllMarkers(xenium_reg_seu, features = Features(xenium_reg_seu))
+markers$gene_symbol <- sapply(markers$gene, function(x) strsplit(x, split = "-")[[1]][1])
+topmarkers <- markers %>%
+  group_by(cluster) %>%
+  dplyr::filter(avg_log2FC > 0.3, p_val_adj < 0.05, pct.1 > 0.5)
+# write.xlsx(as.data.frame(topmarkers), 
+#            file = "../../Nature Methods Revision/supp table/Supplementary Table 4.xlsx", 
+#            sheetName = "without_mIF", append = TRUE)

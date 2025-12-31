@@ -45,37 +45,65 @@ vrSpatialFeaturePlot(DLPFC_merged, assay = c("Assay1", "Assay4"),
 ## 2D Clustering ####
 ####
 
+# DLPFC_merged 2d
+DLPFC_merged_2d <- DLPFC_merged
+
 # remove adjacency in the tissue block
-tmp <- DLPFC_merged@samples$DLPFC_Block@adjacency
+tmp <- DLPFC_merged_2d@samples$DLPFC_Block@adjacency
 tmp[1:4,1:4] <- diag(4)
-DLPFC_merged@samples$DLPFC_Block@adjacency <- tmp
+DLPFC_merged_2d@samples$DLPFC_Block@adjacency <- tmp
 
 ####
 ### Niche Assay from Decon ####
 ####
 
-DLPFC_merged <- getSpatialNeighbors(DLPFC_merged, method = "radius")
-vrMainFeatureType(DLPFC_merged) <- "Decon"
-DLPFC_merged <- getNicheAssay(DLPFC_merged, graph.type = "radius")
-vrMainFeatureType(DLPFC_merged) <- "Niche"
+DLPFC_merged_2d <- getSpatialNeighbors(DLPFC_merged_2d, method = "radius")
+vrMainFeatureType(DLPFC_merged_2d) <- "Decon"
+DLPFC_merged_2d <- getNicheAssay(DLPFC_merged_2d, graph.type = "radius")
+vrMainFeatureType(DLPFC_merged_2d) <- "Niche"
 
 ####
 ### Processing ####
 ####
 
-vrMainFeatureType(DLPFC_merged) <- "Niche"
-DLPFC_merged <- normalizeData(DLPFC_merged, method = "CLR")
+vrMainFeatureType(DLPFC_merged_2d) <- "Niche"
+DLPFC_merged_2d <- normalizeData(DLPFC_merged_2d, method = "CLR")
 
 ####
 ### Clustering ####
 ####
 
-# clustering K Means
-DLPFC_merged <- getClusters(DLPFC_merged, method = "kmeans", nclus = 7, label = "clusters_kmeans")
+# embedding
+DLPFC_merged_2d <- getUMAP(DLPFC_merged_2d, data.type = "norm")
+vrEmbeddingPlot(DLPFC_merged_2d, embedding = "umap", group.by = "Sample")
 
+# clustering 
+DLPFC_merged_2d <- getProfileNeighbors(DLPFC_merged_2d, data.type = "norm", method = "SNN")
+DLPFC_merged_2d <- getClusters(DLPFC_merged_2d, resolution = 0.49, graph = "SNN", label = "clusters_SNN")
+
+# clustering K Means
+DLPFC_merged_2d <- getClusters(DLPFC_merged_2d, method = "kmeans", nclus = 7, label = "clusters_kmeans")
+
+# clustering Manhattan
+DLPFC_merged_2d <- getClusters(DLPFC_merged_2d, method = "hierarchical", nclus = 7, distance_measure = "manhattan", label = "clusters_hier")
+
+# clustering JSD
+vrdata <- t(vrData(DLPFC_merged_2d, norm = FALSE))
+propor_dis <- philentropy::distance(vrdata, method = "jensen-shannon")
+rownames(propor_dis) <- colnames(propor_dis) <- rownames(vrdata)
+propor_dis <- as.dist(propor_dis)
+clusters <- stats::hclust(d = propor_dis, method = "ward.D2")
+clusters <- stats::cutree(clusters, k = 7)
+clusters <- list(names = names(clusters), membership = clusters)
+spatialpoints <- vrSpatialPoints(DLPFC_merged_2d)
+membership <- setNames(rep(NA,length(spatialpoints)), spatialpoints)
+membership[clusters$names] <- clusters$membership
+DLPFC_merged_2d <- addMetadata(DLPFC_merged_2d, value = membership, label = "clusters_hierjsd")
+
+# visualize
 colors <- hue_pal(7)
 names(colors) <- c(5,7,6,2,4,1,3)
-vrSpatialPlot(DLPFC_merged, group.by = "clusters_kmeans", alpha = 1, nrow = 2, crop = TRUE, colors = colors)
+vrSpatialPlot(DLPFC_merged_2d, group.by = "clusters_kmeans", alpha = 1, nrow = 2, crop = TRUE, colors = colors)
 ggsave(filename = "../../Nature Methods Revision/Images/integration/images/registeration/registeration_visium/DLPFC_nicheclusters_2d.pdf", 
        plot = last_plot(), device = "pdf", width = 10, height = 8, units = "in")
 
@@ -175,6 +203,35 @@ g1 + g2 + g3
 ## ARI ####
 ####
 
+####
+### 2D ####
+####
+
+sample_metadata <- SampleMetadata(DLPFC_merged_2d)
+sample_metadata <- data.frame(sample_metadata, labels = c("151673", "151674", "151675", "151676"))
+metadata <- Metadata(DLPFC_merged_2d)
+variables <- colnames(metadata)
+variables <- variables[grepl("Layers|^clusters", variables)]
+metadata <- metadata[metadata$Layers != "none",]
+
+results_list_2d <- list()
+for(assy in unique(metadata$assay_id)){
+  cur_metadata <- metadata[metadata$assay_id == assy,]
+  results <- matrix(1, nrow = length(variables), ncol = length(variables))
+  for(i in 1:(length(variables)-1)){
+    for(j in (i+1):length(variables)){
+      results[i,j] <- results[j,i] <- mclust::adjustedRandIndex(cur_metadata[[variables[i]]], cur_metadata[[variables[j]]])
+    }
+  }
+  rownames(results) <- colnames(results) <- variables
+  results_list_2d[[sample_metadata[assy, "labels"]]] <- results[-1,"Layers"]
+}
+results_list_2d <- do.call(results_list_2d, what = "rbind")
+
+####
+### 3D ####
+####
+
 sample_metadata <- SampleMetadata(DLPFC_merged)
 sample_metadata <- data.frame(sample_metadata, labels = c("151673", "151674", "151675", "151676"))
 metadata <- Metadata(DLPFC_merged)
@@ -196,21 +253,31 @@ for(assy in unique(metadata$assay_id)){
 }
 results_list <- do.call(results_list, what = "rbind")
 
+####
+### visualize ####
+####
+
+
 # visualize
 results_list <- reshape2::melt(results_list)
 colnames(results_list) <- c("Sample", "Method", "ARI")
-tmp <- results_list$Sample
+results_list_2d <- reshape2::melt(results_list_2d)
+colnames(results_list_2d) <- c("Sample", "Method", "ARI")
+results_list_merged <- data.frame(rbind(results_list_2d, results_list), 
+                                  Type = c(rep("2D", nrow(results_list_2d)), rep("3D", nrow(results_list))))
+tmp <- results_list_merged$Sample
 tmp <- factor(tmp, levels = c("151673", "151674", "151675", "151676"))
-results_list$Sample <- tmp
-ggplot(results_list, aes(x = Method, y = ARI, fill = Sample)) + 
+results_list_merged$Sample <- tmp
+ggplot(results_list_merged, aes(x = Method, y = ARI, fill = Sample)) + 
   geom_bar(size = 5, stat = "identity", position = position_dodge()) + 
   theme_bw() + 
   theme(axis.text.x=element_text(angle=45, hjust=1, vjust = 1)) +
   ylab("") + xlab("")+
+  facet_grid(. ~ Type) +
   theme_classic() + 
   ylim(0,0.8) + 
   theme(axis.text.x = element_text(size=7, angle=45, hjust=1, vjust = 1),
         axis.text.y = element_text(size=7)) +
   scale_fill_manual(values = c("#440154", "#21908C", "#FDE725", "purple")) 
 ggsave(filename = "../../Nature Methods Revision/Images/Supplementary Material/SpatiallyAwareAnalysis/spot_comparison_ARI.pdf", 
-       plot = last_plot(), device = "pdf", width = 5, height = 4, units = "in")
+       plot = last_plot(), device = "pdf", width = 8, height = 4, units = "in")
