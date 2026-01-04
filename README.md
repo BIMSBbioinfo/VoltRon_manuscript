@@ -2,4 +2,4 @@
 
 Publication material relevant for the manuscript describing the VoltRon package. 
 
-See our github repository of `VoltRon <https://github.com/BIMSBbioinfo/VoltRon>`_. 
+See our github repository at [https://github.com/BIMSBbioinfo/VoltRon](https://github.com/BIMSBbioinfo/VoltRon)
