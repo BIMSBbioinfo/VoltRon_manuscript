@@ -1,6 +1,4 @@
-==============================
-VoltRon manuscript material
-==============================
+# VoltRon_manuscript
 
 Publication material relevant for the manuscript describing the VoltRon package. 
 
