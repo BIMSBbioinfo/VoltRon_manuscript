@@ -1,5 +1,6 @@
 library(RBioFormats)
-library(peakRAM)
+# library(peakRAM)
+source("functions.R")
 library(bench)
 library(magick)
 library(VoltRon)
@@ -29,7 +30,7 @@ res1 <- peakRAM({
 
 # image warping
 res2 <- peakRAM({
-  img_new <- VoltRon:::getRcppWarpImage(img, img2, mapping_parameters$mapping$`2`)
+  img_new <- VoltRon:::warpImage(img, img2, mapping_parameters$mapping$`2`)
 })
 
 # mapping
@@ -43,12 +44,15 @@ result <- c(
   paste(VoltRon:::getImageInfo(img)[c("width", "height")], collapse = "x"),
   paste(VoltRon:::getImageInfo(img2)[c("width", "height")], collapse = "x"),
   as.character(res1$Elapsed_Time_sec),
-  as.character(as_bench_bytes(res1$Peak_RAM_Used_MiB)),
+  # as.character(as_bench_bytes(res1$Peak_RAM_Used_MiB)),
+  as.character(res1$Peak_RAM_Used_MiB),
   as.character(res2$Elapsed_Time_sec),
-  as.character(as_bench_bytes(res2$Peak_RAM_Used_MiB)),
+  # as.character(as_bench_bytes(res2$Peak_RAM_Used_MiB)),
+  as.character(res2$Peak_RAM_Used_MiB),
   as.character(nrow(coords)),
   as.character(res3$Elapsed_Time_sec),
-  as.character(as_bench_bytes(res3$Peak_RAM_Used_MiB)),
+  # as.character(as_bench_bytes(res3$Peak_RAM_Used_MiB)),
+  as.character(res3$Peak_RAM_Used_MiB),
   as.character(as_bench_bytes(object.size(image_data(img)) + object.size(image_data(img2)) + object.size(image_data(img_new))))
 )
 names(result) <- c("size_ref", "size_query", "time_reg", "mem_reg", "time_warp", "mem_warp", "n_cells", "time_map", "mem_map", 

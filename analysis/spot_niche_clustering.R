@@ -1,4 +1,4 @@
-library(VoltRon)
+# library(VoltRon)
 library(philentropy)
 library(patchwork)
 library(ggpubr)
@@ -100,12 +100,18 @@ membership <- setNames(rep(NA,length(spatialpoints)), spatialpoints)
 membership[clusters$names] <- clusters$membership
 DLPFC_merged_2d <- addMetadata(DLPFC_merged_2d, value = membership, label = "clusters_hierjsd")
 
+# save clustered
+# saveRDS(DLPFC_merged_2d, file = "../data/DLFPC/DLPFC_merged_nicheclustered_2d.rds")
+# DLPFC_merged_2d <- readRDS("../data/DLFPC/DLPFC_merged_nicheclustered_2d.rds")
+
 # visualize
 colors <- hue_pal(7)
 names(colors) <- c(5,7,6,2,4,1,3)
 vrSpatialPlot(DLPFC_merged_2d, group.by = "clusters_kmeans", alpha = 1, nrow = 2, crop = TRUE, colors = colors)
 ggsave(filename = "../../Nature Methods Revision/Images/integration/images/registeration/registeration_visium/DLPFC_nicheclusters_2d.pdf", 
        plot = last_plot(), device = "pdf", width = 10, height = 8, units = "in")
+
+# 
 
 ####
 ## 3D Clustering ####
@@ -159,7 +165,7 @@ membership[clusters$names] <- clusters$membership
 DLPFC_merged <- addMetadata(DLPFC_merged, value = membership, label = "clusters_hierjsd")
 
 # save clustered
-# saveRDS(DLPFC_merged, file = "data/DLFPC/DLPFC_merged_nicheclustered.rds")
+# saveRDS(DLPFC_merged, file = "../data/DLFPC/DLPFC_merged_nicheclustered.rds")
 # DLPFC_merged <- readRDS("../data/DLFPC/DLPFC_merged_nicheclustered.rds")
 
 # colors
@@ -186,8 +192,8 @@ ggpubr::ggarrange(plotlist = g_list2, ncol = 3, nrow = 2)
 
 g_list_all <- c(g_list, g_list2)
 ggpubr::ggarrange(plotlist = g_list_all, ncol = 5, nrow = 2)
-ggsave(filename = "../../Nature Methods Revision/Images/Supplementary Material/SpatiallyAwareAnalysis/spot_comparison.pdf", 
-       plot = last_plot(), device = "pdf", width = 30, height = 10, units = "in")
+# ggsave(filename = "../../Nature Methods Revision/Images/Supplementary Material/SpatiallyAwareAnalysis/spot_comparison.pdf", 
+#        plot = last_plot(), device = "pdf", width = 30, height = 10, units = "in")
 
 ####
 ### Heatmap ####
@@ -202,6 +208,9 @@ g1 + g2 + g3
 ####
 ## ARI ####
 ####
+
+DLPFC_merged_2d <- readRDS("../data/DLFPC/DLPFC_merged_nicheclustered_2d.rds")
+DLPFC_merged <- readRDS("../data/DLFPC/DLPFC_merged_nicheclustered.rds")
 
 ####
 ### 2D ####
@@ -220,7 +229,8 @@ for(assy in unique(metadata$assay_id)){
   results <- matrix(1, nrow = length(variables), ncol = length(variables))
   for(i in 1:(length(variables)-1)){
     for(j in (i+1):length(variables)){
-      results[i,j] <- results[j,i] <- mclust::adjustedRandIndex(cur_metadata[[variables[i]]], cur_metadata[[variables[j]]])
+      results[i,j] <- results[j,i] <- 
+        mclust::adjustedRandIndex(cur_metadata[[variables[i]]], cur_metadata[[variables[j]]])
     }
   }
   rownames(results) <- colnames(results) <- variables
@@ -244,11 +254,15 @@ for(assy in unique(metadata$assay_id)){
   cur_metadata <- metadata[metadata$assay_id == assy,]
   results <- matrix(1, nrow = length(variables), ncol = length(variables))
   for(i in 1:(length(variables)-1)){
+    print(variables[i])
     for(j in (i+1):length(variables)){
-      results[i,j] <- results[j,i] <- mclust::adjustedRandIndex(cur_metadata[[variables[i]]], cur_metadata[[variables[j]]])
+      print(c(i,j))
+      results[i,j] <- results[j,i] <- 
+        mclust::adjustedRandIndex(cur_metadata[[variables[i]]], cur_metadata[[variables[j]]])
     }
   }
   rownames(results) <- colnames(results) <- variables
+  print(results)
   results_list[[sample_metadata[assy, "labels"]]] <- results[-1,"Layers"]
 }
 results_list <- do.call(results_list, what = "rbind")
@@ -256,7 +270,6 @@ results_list <- do.call(results_list, what = "rbind")
 ####
 ### visualize ####
 ####
-
 
 # visualize
 results_list <- reshape2::melt(results_list)
@@ -279,5 +292,20 @@ ggplot(results_list_merged, aes(x = Method, y = ARI, fill = Sample)) +
   theme(axis.text.x = element_text(size=7, angle=45, hjust=1, vjust = 1),
         axis.text.y = element_text(size=7)) +
   scale_fill_manual(values = c("#440154", "#21908C", "#FDE725", "purple")) 
-ggsave(filename = "../../Nature Methods Revision/Images/Supplementary Material/SpatiallyAwareAnalysis/spot_comparison_ARI.pdf", 
-       plot = last_plot(), device = "pdf", width = 8, height = 4, units = "in")
+# ggsave(filename = "../../Nature Methods Revision/Images/Supplementary Material/SpatiallyAwareAnalysis/spot_comparison_ARI.pdf", 
+#        plot = last_plot(), device = "pdf", width = 8, height = 4, units = "in")
+
+# test results
+# write.table(results_list_merged, file = "../data/DLFPC/DLPFC_merged_nicheclustered_results.tsv", sep = "\t", quote = FALSE, row.names = FALSE)
+results_list_merged <- read.table("../data/DLFPC/DLPFC_merged_nicheclustered_results.tsv", header = TRUE)
+
+####
+## test ####
+####
+
+library(glmmTMB)
+library(emmeans)
+m <- glmmTMB(ARI ~ Method * Type + (1 | Sample),
+             family = beta_family(link = "logit"),
+             data = results_list_merged)
+emmeans(m, ~ Type | Method, lmer.df = c("kenward-roger")) |> contrast("revpairwise") |> summary(adjust = "holm")

@@ -10,7 +10,7 @@ library(VoltRon)
 
 # import
 Xen_pups <- importXenium("../../../../data/xenium/Xenium_Prime_Mouse_Pup_FFPE_outs/", sample_name = "XeniumR1",
-                       resolution_level = 2, overwrite_resolution = FALSE, import_molecules = FALSE)
+                       resolution_level = 2, overwrite_resolution = TRUE, import_molecules = FALSE)
 ome.tiff <- "../../../../data/xenium/Xenium_Prime_Mouse_Pup_FFPE_outs/Xenium_Prime_Mouse_Pup_FFPE_he_image.ome.tif"
 read.metadata(ome.tiff)
 Xen_pups_image <- importImageData("../../../../data/xenium/Xenium_Prime_Mouse_Pup_FFPE_outs/Xenium_Prime_Mouse_Pup_FFPE_he_image.ome.tif",

@@ -17,8 +17,7 @@ Xen_lung <- subset(vr2, image = subset_info_list[4])
 # import HE
 HE_image <- magick::image_read("../../../../analysis/ImageAlignmentBenchmark/data/LungTMA/HE/lungTMA_4.jpg")
 Xen_lung_image <- importImageData(HE_image,
-                                  sample_name = "XeniumImage",
-                                  channel_names = "H&E")
+                                  sample_name = "XeniumImage")
 
 # register
 # xen_reg <- registerSpatialData(object_list = c(Xen_lung_image, Xen_lung))
@@ -38,7 +37,7 @@ res1 <- peakRAM({
 
 # image warping
 res2 <- peakRAM({
-  img_new <- VoltRon:::getRcppWarpImage(img, img2, mapping_parameters$mapping$`2`)
+  img_new <- VoltRon:::warpImage(img, img2, mapping_parameters$mapping$`2`)
 })
 
 # mapping cell
@@ -58,15 +57,15 @@ result <- c(
   paste(VoltRon:::getImageInfo(img)[c("width", "height")], collapse = "x"),
   paste(VoltRon:::getImageInfo(img2)[c("width", "height")], collapse = "x"),
   as.character(res1$Elapsed_Time_sec),
-  as.character(as_bench_bytes(res1$Peak_RAM_Used_MiB)),
+  as.character(res1$Peak_RAM_Used_MiB),
   as.character(res2$Elapsed_Time_sec),
-  as.character(as_bench_bytes(res2$Peak_RAM_Used_MiB)),
+  as.character(res2$Peak_RAM_Used_MiB),
   as.character(nrow(coords)),
   as.character(res3$Elapsed_Time_sec),
-  as.character(as_bench_bytes(res3$Peak_RAM_Used_MiB)),
+  as.character(res3$Peak_RAM_Used_MiB),
   as.character(nrow(coords_mol)),
   as.character(res4$Elapsed_Time_sec),
-  as.character(as_bench_bytes(res4$Peak_RAM_Used_MiB)),
+  as.character(res4$Peak_RAM_Used_MiB),
   as.character(as_bench_bytes(object.size(image_data(img)) + object.size(image_data(img2)) + object.size(image_data(img_new))))
 )
 names(result) <- c("size_ref", "size_query", "time_reg", "mem_reg", "time_warp", "mem_warp", "n_cells", "time_map", "mem_map", 

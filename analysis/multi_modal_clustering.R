@@ -6,6 +6,7 @@ library(Seurat)
 library(dplyr)
 library(RBioFormats)
 library(xlsx)
+library(tiff)
 
 ####
 # Import Xenium ####
@@ -57,9 +58,50 @@ xen_reg <- registerSpatialData(object_list = list(ome_tiff_same_vr2, xen_subset2
                                interactive = TRUE)
 xenium_reg <- xen_reg$registered_spat[[2]]
 
+xen_reg <- registerSpatialData(object_list = list(ome_tiff_same_vr, xen_subset),
+                               mapping_parameters = readRDS("../data/Tonsil/samesection_registration_parameters.rds"), 
+                               interactive = TRUE)
+# saveRDS(xen_reg$accuracy_metrics, file = "results/same_section_accuracy.rds")
+
+# visualize accuracy
+accuracy_metrics <- readRDS(file = "results/same_section_accuracy.rds")
+VoltRon:::.plot_ssim_map(accuracy_metrics$ssim_maps$`2`$Coarse)
+
 # visualize segments
 vrImages(xenium_reg[["Assay1"]], name = "main_reg", channel = "CD20") <- vrImages(ome_tiff_same_vr, channel = "cy5_cd20")
 vrImages(xenium_reg[["Assay1"]], name = "main_reg", channel = "CD21") <- vrImages(ome_tiff_same_vr, channel = "Cy5_CD21")
+
+####
+## Compare DAPI signals from both images ####
+####
+
+img1 <- vrImages(ome_tiff_same_vr, channel = "DAPI")
+img2 <- vrImages(xenium_reg[["Assay1"]], name = "main_reg", channel = "DAPI")
+img1_data <- magick::image_data(img1)
+img1_data <- as.integer(img1_data)
+img1_data <- array(img1_data, dim = dim(img1_data)[1:2])
+img1_data <- as.matrix(img1_data)
+img1_data <- img1_data/max(img1_data)
+writeTIFF(img1_data, where = "results/img1.tiff", compression = "LZW")
+img2_data <- magick::image_data(img2)
+img2_data <- as.integer(img2_data)
+img2_data <- array(img2_data, dim = dim(img2_data)[1:2])
+img2_data <- as.matrix(img2_data)
+img2_data <- img2_data/max(img2_data)
+writeTIFF(img2_data, where = "results/img2.tiff", compression = "LZW")
+
+img1 <- magick::image_modulate(img1, brightness = 700)
+img2 <- magick::image_convert(img2, colorspace = "gray")
+img1_data <- magick::image_data(img1)
+img2_data <- magick::image_data(img2)
+img1_data <- as.integer(img1_data)
+img2_data <- as.integer(img2_data)
+set.seed(1)
+datax <- data.frame(img1 = as.vector(img1_data), img2 = as.vector(img2_data))
+datax2 <- datax[sample(1:nrow(datax), 30000),]
+ggplot(datax2, aes(x = img1, y = img2)) + 
+  geom_point()
+# plot(img1_data, img2_data)
 
 ####
 ## create and add aligned IF features ####
@@ -452,8 +494,12 @@ ggpubr::ggarrange(plotlist = g2, ncol = 3, nrow = 2)
 ## Import QuPath Data ####
 ####
 
+library(sf)
+segments <- read_sf("../data/Tonsil/IF_QuPath/measurements_featurecollection.geojson", 
+                    type = 3)
+segments <- generateSegments(segments)
 adj_vr <- importQuPathIF(measurements = "../data/Tonsil/IF_QuPath/measurements_adjusted.txt",
-                         segments = "../data/Tonsil/IF_QuPath/measurements.geojson", 
+                         segments = segments, 
                          image = "../../../../data/Erik/Erik_Alignment_TMA/out/Adjacent section/Core_13.ome.tif", 
                          channels = c("DAPI", "CD20", "CD68", "CD21", "FOXP3", "CD45RB"),
                          series = 1,
@@ -479,6 +525,13 @@ xenium_reg <- xen_reg$registered_spat
 
 # merge data
 xenium_reg <- merge(xenium_reg[[1]], xenium_reg[[2]], samples = "XeniumBlock")
+
+# saveRDS(xen_reg$accuracy_metrics, file = "results/adj_section_accuracy.rds")
+
+# visualize accuracy
+accuracy_metrics <- readRDS(file = "results/adj_section_accuracy.rds")
+VoltRon:::.plot_ssim_map(accuracy_metrics$ssim_maps$`2`$Coarse)
+VoltRon:::.plot_ssim_map(accuracy_metrics$ssim_maps$`2`$Fine)
 
 ####
 ## Analyze IF data ####

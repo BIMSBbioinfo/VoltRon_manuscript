@@ -161,3 +161,41 @@ magick::image_ggplot(img1) +
   geom_point(data = datax, mapping = aes(x = x, y = y), color = "black", size = 0.05, alpha = 0.5)
 ggsave(filename = "../../allresults/BreastCancer/figures/visium_overlay/janesick_XenvsVisium_overlay.pdf", 
        device = "png", plot = last_plot(), width = 6, height = 8)
+
+####
+# Lee's test across all genes ####
+####
+
+VRBlock <- transferData(VRBlock, from = "Assay1", to = "Assay2", new_feature_name = "RNA_pseudoXenium1")
+vrMainFeatureType(VRBlock[["Assay2"]]) <- "RNA"
+features1 <- vrFeatures(VRBlock)
+vrMainFeatureType(VRBlock[["Assay2"]]) <- "RNA_pseudoXenium1"
+features2 <- vrFeatures(VRBlock)
+selected_features <- intersect(features1, features2)
+
+# Lee's Test
+leesstats <- NULL
+for(feat in selected_features){
+  
+  # correlation plot of TACSTD2 across two assays
+  data1 <- vrData(VRBlock, assay = "Assay2", features = feat, feat_type = "RNA")
+  data2 <- vrData(VRBlock, assay = "Assay2", features = feat, feat_type = "RNA_pseudoXenium1")
+  data1 <- data1[1,,drop=TRUE]
+  data2 <- data2[1,,drop=TRUE]
+  datax <- data.frame(Visium = log10(data1[names(data2)] + 1), 
+                      Xenium = log10(data2 + 1))
+  vrMainAssay(VRBlock) <- "Visium"
+  VRBlock <- getSpatialNeighbors(VRBlock, method = "radius")
+  matgraph <- igraph::as_adjacency_matrix(vrGraph(VRBlock))
+  matgraph <- matgraph[names(data2),names(data2)]
+  neigh <- spdep::mat2listw(matgraph, )
+  res <- lee.test(x = datax[,1], 
+                  y = datax[,2], 
+                  listw = neigh, zero.policy=attr(neigh, "zero.policy"),
+                  alternative="greater") 
+  
+  # add stats
+  res <- res$estimate
+  res <- c("gene" = feat, res)
+  leesstats <- rbind(leesstats, res)
+}
