@@ -1,0 +1,11 @@
+name: dapi_vs_HE
+cells: ../../../../../data/Xenium_Prime_Mouse_Pup_FFPE_outs/cells.csv.gz
+target_image: ../../../../../data/Xenium_Prime_Mouse_Pup_FFPE_outs/Xenium_Prime_Mouse_Pup_FFPE_he_image.ome.tif
+source_image: ../../../../../data/Xenium_Prime_Mouse_Pup_FFPE_outs/morphology_focus/morphology_focus_0000.ome.tif
+affine_target_landmarks: ../../../../../data/Xenium_Prime_Mouse_Pup_FFPE_outs/Xeniumpups_HE_annotator_image_point.csv
+affine_source_landmarks: ../../../../../data/Xenium_Prime_Mouse_Pup_FFPE_outs/Xeniumpups_DAPI_annotator_image_point.csv
+niter: 1000
+sigmaM: 0.15
+sigmaB: 0.10
+sigmaA: 0.11
+epV: 10

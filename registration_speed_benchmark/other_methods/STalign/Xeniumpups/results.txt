@@ -1,0 +1,20 @@
+1260000 of 1298870
+1270000 of 1298870
+1280000 of 1298870
+1290000 of 1298870
+1298869 of 1298870
+3 channel page(s); page 0 shape: (62008, 90959)
+Image size: (15502, 22739, 3)
+Number of alignment landmarks: 4
+registering points
+/fast/AG_Landthaler/scripts/Miniforge3/envs/voltron_benchmark_stalign/lib/python3.9/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3483.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+/fast/AG_Landthaler/scripts/Miniforge3/envs/voltron_benchmark_stalign/lib/python3.9/site-packages/STalign/STalign.py:1301: UserWarning: Data has no positive values, and therefore cannot be log-scaled.
+  axE[2].set_yscale('log')
+    Time: 336.5115 s
+    Current memory: 73.34 MiB
+    Peak memory:    206.58 MiB
+transform points
+    Time: 0.1556 s
+    Current memory: 0.00 MiB
+    Peak memory:    19.82 MiB

@@ -65,4 +65,7 @@ ggplot(datag, aes(x = `Lee.s.L.statistic`, fill = group, col = group)) +
   geom_density(
     linewidth = 0.4, alpha = 0.7
   ) +
-  theme_classic()
+  scale_color_manual(values = c("#440154", "#21908C", "#FDE725", "purple")) + 
+  scale_fill_manual(values = c("#440154", "#21908C", "#FDE725", "purple")) + 
+  theme_classic() 
+ggsave("figures/breastcancer_leestest_all.pdf", plot = last_plot(), device = "pdf", width = 6, height = 5)

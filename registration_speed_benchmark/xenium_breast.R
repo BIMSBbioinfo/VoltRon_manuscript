@@ -15,7 +15,7 @@ ome.tiff <- "../../../../data/10X_Xenium_Visium/Xenium_R1/Xenium_FFPE_Human_Brea
 read.metadata(ome.tiff)
 Xen_breast_image <- importImageData(ome.tiff,
                                   sample_name = "XeniumImage",
-                                  channel_names = "H&E", 
+                                  channels = "H&E", 
                                   tile.size = 100)
 
 # register

@@ -1,0 +1,37 @@
+Time spent on saving the results, applying the final transform etc.: 35 ms.
+    Time: 168.2173 s
+    Current memory: 199.80 MiB
+    Peak memory:    1462.46 MiB
+saving transformations
+transform images
+using default compression
+saving to results/HE_vs_XeniumR1/my_reg_project-modality_fluo_to_modality_brightfield_registered.ome.tiff
+transforming : 0
+transformed : 0
+saving
+ writing channel 0 - shape: (13477, 28019)
+pyramid index 1 : channel 0 shape: (6738, 14009)
+pyramid index 2 : channel 0 shape: (3369, 7004)
+pyramid index 3 : channel 0 shape: (1684, 3502)
+pyramid index 4 : channel 0 shape: (842, 1751)
+preparing transforms for non-registered modality : modality_brightfield 
+using default compression
+saving to results/HE_vs_XeniumR1/my_reg_project-modality_brightfield_registered.ome.tiff
+transforming : 0
+saving
+ writing channel 0 - shape: (13477, 28019)
+pyramid index 1 : channel 0 shape: (6738, 14009)
+pyramid index 2 : channel 0 shape: (3369, 7004)
+pyramid index 3 : channel 0 shape: (1684, 3502)
+pyramid index 4 : channel 0 shape: (842, 1751)
+    Time: 91.6777 s
+    Current memory: 497.35 MiB
+    Peak memory:    1452.56 MiB
+transform points
+transform at index 0 is non-linear and the inverse has not been computed
+inverting displacement field(s)...
+this can take some time
+transforming shape set Xenium_landmarks associated with modality_fluo to modality_brightfield
+    Time: 263.7011 s
+    Current memory: 0.03 MiB
+    Peak memory:    595.75 MiB

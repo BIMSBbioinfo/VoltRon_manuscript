@@ -1,0 +1,19 @@
+Number of Cells: 12214
+0 of 12214
+10000 of 12214
+12213 of 12214
+Image size: (9297, 9297, 3)
+Number of alignment landmarks: 3
+registering points
+/fast/AG_Landthaler/scripts/Miniforge3/envs/voltron_benchmark_stalign/lib/python3.9/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3483.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+/fast/AG_Landthaler/scripts/Miniforge3/envs/voltron_benchmark_stalign/lib/python3.9/site-packages/STalign/STalign.py:1301: UserWarning: Data has no positive values, and therefore cannot be log-scaled.
+  axE[2].set_yscale('log')
+    Time: 146.7296 s
+    Current memory: 35.81 MiB
+    Peak memory:    54.80 MiB
+transform points
+    Time: 0.0033 s
+    Current memory: 0.00 MiB
+    Peak memory:    0.19 MiB
+

@@ -85,3 +85,43 @@ peakRAM <- function(...){
              "Peak_RAM_Used_MiB" = RAMpeak,
              row.names = 1:numfunc)
 }
+
+convert_to_bytes <- function(x) {
+  
+  # Remove spaces for safety
+  x <- trimws(x)
+  
+  if (grepl("MB$", x, ignore.case = TRUE)) {
+    value <- as.numeric(sub("MB$", "", x, ignore.case = TRUE))
+    return(value * 1024^2)  # MB → bytes
+  } else if (grepl("GB$", x, ignore.case = TRUE)) {
+    value <- as.numeric(sub("GB$", "", x, ignore.case = TRUE))
+    return(value * 1024^3)  # GB → bytes
+  } else if (grepl("KB$", x, ignore.case = TRUE)) {
+    value <- as.numeric(sub("KB$", "", x, ignore.case = TRUE))
+    return(value * 1024)  # KB → bytes
+  } 
+  
+  return(x)
+}
+
+transform_breaks_time <- function(x, breaks){
+  breaks <- c(-1,breaks)
+  x_ind <- as.integer(cut(x, breaks = breaks))
+  diff <- breaks[-1] - breaks[-length(breaks)]
+  low <- breaks[x_ind]
+  high <- breaks[x_ind + 1]
+  x_norm <- ((x - low)/(high - low)) + (x_ind - 1)
+  return(x_norm)
+}
+
+transform_breaks_mem <- function(x){
+  breaks <- c(1,1024, 1024^2, 1024^3, 4*1024^3)
+  x_ind <- as.integer(cut(x, breaks = breaks))
+  diff <- breaks[-1] - breaks[-length(breaks)]
+  low <- breaks[x_ind]
+  high <- breaks[x_ind + 1]
+  # x_norm <- ((x - low)/(high - low)) + (x_ind - 1)
+  x_norm <- (x)/(1024^(x_ind)) + (x_ind - 1)
+  return(x_norm)
+}

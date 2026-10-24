@@ -1,0 +1,11 @@
+name: LungTMA4_DAPI_vs_HE
+cells: ../../../../../data/lungTMA/lungTMA_Assay4coords_unrotated.csv
+target_image: ../../../../../data/lungTMA/lungTMA_4.jpg
+source_image: ../../../../../data/lungTMA/lungTMA_Assay4.tif
+affine_target_landmarks: ../../../../../data/lungTMA/lungTMA4_HE_annotator_image_point_new.csv
+affine_source_landmarks: ../../../../../data/lungTMA/lungTMA4_DAPI_annotator_image_point_new.csv
+niter: 1000
+sigmaM: 0.15
+sigmaB: 0.10
+sigmaA: 0.11
+epV: 10

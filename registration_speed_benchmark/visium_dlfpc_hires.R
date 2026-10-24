@@ -33,7 +33,7 @@ res1 <- peakRAM({
 
 # image warping
 res2 <- peakRAM({
-  img_new <- VoltRon:::getRcppWarpImage(img, img2, mapping_parameters$mapping$`2`)
+  img_new <- VoltRon:::warpImage(img, img2, mapping_parameters$mapping$`2`)
 })
 
 # mapping
@@ -57,4 +57,4 @@ result <- c(
 )
 names(result) <- c("size_ref", "size_query", "time_reg", "mem_reg", "time_warp", "mem_warp", "n_cells", "time_map", "mem_map", 
                    "image_size")
-write.csv(as.data.frame(result), file = "results/visium_dlfpc_hires.csv")
+# write.csv(as.data.frame(result), file = "results/visium_dlfpc_hires.csv")
