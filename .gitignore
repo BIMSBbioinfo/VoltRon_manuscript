@@ -13,3 +13,6 @@ scratch/*
 */old_files
 */results
 */data
+*.pdf
+*.pt
+*.png

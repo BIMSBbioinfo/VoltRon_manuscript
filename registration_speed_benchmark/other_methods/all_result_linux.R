@@ -51,7 +51,9 @@ g1 <- ggplot(mapping = aes(x = Dataset, y = value, fill = Method), data = all_re
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
   theme(legend.position = "top") + 
   guides(fill=guide_legend(nrow=1,byrow=TRUE)) + 
-  ylab("Time (seconds)") + xlab("")
+  ylab("Time (seconds)") + xlab("") +
+  scale_x_discrete(expand = expansion(add = 0.4)) + 
+  theme(panel.spacing.x = unit(0.5, "lines"))
 
 ####
 # visualize memory ####
@@ -91,5 +93,5 @@ g2 <- ggplot(mapping = aes(x = Dataset, y = value, fill = Method), data = all_re
   theme(panel.spacing.x = unit(0.5, "lines"))
 
 g1 / g2
-# ggsave("time_memory.pdf", plot = last_plot(), device = "pdf",
-#        height = 8, width = 15)
+ggsave("time_memory.pdf", plot = last_plot(), device = "pdf",
+       height = 8, width = 15)
