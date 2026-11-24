@@ -63,9 +63,10 @@ ggsave(filename = "all_methods_comparison.pdf", plot = g1 | g2, width = 12, heig
 ####
 
 # import data
-XeniumR1_image <- magick::image_read(paste0("../../../../../analysis/ImageAlignmentBenchmark/data/BreastCancer/Xenium_R1/Xenium/image_3.tiff"))
-DAPI_image <- magick::image_read(paste0("../../../../../analysis/ImageAlignmentBenchmark/data/BreastCancer/Xenium_R1/IF/DAPI.tiff"))
-HE_image <- magick::image_read(paste0("../../../../../analysis/ImageAlignmentBenchmark/data/BreastCancer/Xenium_R1/HE/Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image_highres.tif"))
+XeniumR1_image <- magick::image_read(paste0("../../../../../../analysis/ImageAlignmentBenchmark/data/BreastCancer/Xenium_R1/Xenium/image_3.tiff"))
+DAPI_image <- magick::image_read(paste0("../../../../../../analysis/ImageAlignmentBenchmark/data/BreastCancer/Xenium_R1/IF/DAPI.tiff"))
+# HE_image <- magick::image_read(paste0("../../../../../analysis/ImageAlignmentBenchmark/data/BreastCancer/Xenium_R1/HE/Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image_highres.tif"))
+HE_image <- magick::image_read(paste0("../../../../../../analysis/ImageAlignmentBenchmark/data/BreastCancer/Xenium_R1/HE/Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif"))
 
 # voltron
 ref_image <- HE_image
@@ -112,10 +113,25 @@ result <- image_composite(img1, img2, operator = "Bumpmap")
 magick::image_ggplot(result)
 ggsave(filename = "results/wsireg_Xenium_vs_HE.pdf", plot = last_plot(), width = 7, height = 7)
 
-img1 <- RBioFormats::read.image("../../../benchmarks/wsireg/BreastCancer/results/IF_vs_XeniumR1/my_reg_project-modality_brightfield_registered.ome.tiff", 
-                                series = 1, resolution = 1)
-img1 <- magick::image_read(as.raster(img1))
-img2 <- RBioFormats::read.image("../../../benchmarks/wsireg/BreastCancer/results/IF_vs_XeniumR1/my_reg_project-modality_fluo_to_modality_brightfield_registered.ome.tiff", 
+# img1 <- RBioFormats::read.image("../../../benchmarks/wsireg/BreastCancer/results/IF_vs_XeniumR1/my_reg_project-modality_brightfield_registered.ome.tiff", 
+#                                 series = 1, resolution = 1)
+# img1 <- magick::image_read(as.raster(img1))
+# img2 <- RBioFormats::read.image("../../../benchmarks/wsireg/BreastCancer/results/IF_vs_XeniumR1/my_reg_project-modality_fluo_to_modality_brightfield_registered.ome.tiff", 
+#                                 series = 1, resolution = 1)
+# img2 <- magick::image_read(as.raster(img2))
+# img1 <- image_resize(img1, geometry = magick::geometry_size_percent(20))
+# img2 <- image_resize(img2, geometry = magick::geometry_size_percent(20))
+# img1 <- image_modulate(img1, brightness = 300)
+# img2 <- image_modulate(img2, brightness = 200)
+# result <- image_composite(img1, img2, operator = "Blend")
+# magick::image_ggplot(result)
+# ggsave(filename = "results/wsireg_Xenium_vs_DAPI.pdf", plot = last_plot(), width = 7, height = 7)
+
+# img1 <- RBioFormats::read.image("../../../../../../analysis/assay-coregistration/benchmarks/wsireg/BreastCancer/results/IF_vs_XeniumR1_affine/my_reg_project-modality_brightfield_registered.ome.tiff", 
+#                                 series = 1, resolution = 1)
+# img1 <- magick::image_read(as.raster(img1))
+img1 <- DAPI_image
+img2 <- RBioFormats::read.image("../../../../../../analysis/assay-coregistration/benchmarks/wsireg/BreastCancer/results/IF_vs_XeniumR1_affine/my_reg_project-modality_fluo_to_modality_brightfield_registered.ome.tiff", 
                                 series = 1, resolution = 1)
 img2 <- magick::image_read(as.raster(img2))
 img1 <- image_resize(img1, geometry = magick::geometry_size_percent(20))
@@ -125,6 +141,7 @@ img2 <- image_modulate(img2, brightness = 200)
 result <- image_composite(img1, img2, operator = "Blend")
 magick::image_ggplot(result)
 ggsave(filename = "results/wsireg_Xenium_vs_DAPI.pdf", plot = last_plot(), width = 7, height = 7)
+
 
 ####
 ## STAlign ####
@@ -155,3 +172,26 @@ datax <- g1@layers$stat_bin_2d$data
 magick::image_ggplot(img1) + 
   geom_point(data = datax, mapping = aes(x = x, y = y), color = "red", size = 0.05, alpha = 0.5)
 ggsave(filename = "results/stalign_Xenium_vs_DAPI.png", device = "png", plot = last_plot(), width = 7, height = 7)
+
+####
+## SpOmiAlign ####
+####
+
+img1 <- magick::image_read("../../../../../../analysis/assay-coregistration/benchmarks/spomialign/BreastCancer/results/XeniumR1_vs_HE/img_2_img/XeniumtoHE/alignment/color_alignment_overlay.png")
+img2 <- magick::image_read("../../../../../../analysis/assay-coregistration/benchmarks/spomialign/BreastCancer/results/XeniumR1_vs_HE/img_2_img/XeniumtoHE/alignment/aligned_source_img2.png")
+img1 <- image_resize(img1, geometry = magick::geometry_size_percent(20))
+img2 <- image_resize(img2, geometry = magick::geometry_size_percent(20))
+# img2 <- image_negate(img2)
+result <- image_composite(img1, img2, operator = "Bumpmap")
+magick::image_ggplot(result)
+ggsave(filename = "results/spomialign_Xenium_vs_HE.pdf", plot = last_plot(), width = 7, height = 7)
+
+img1 <- magick::image_read("../../../../../../analysis/assay-coregistration/benchmarks/spomialign/BreastCancer/results/XeniumR1_vs_IF/img_2_img/XeniumtoHE/alignment/color_alignment_overlay.png")
+img2 <- magick::image_read("../../../../../../analysis/assay-coregistration/benchmarks/spomialign/BreastCancer/results/XeniumR1_vs_IF/img_2_img/XeniumtoHE/alignment/aligned_source_img2.png")
+img1 <- image_resize(img1, geometry = magick::geometry_size_percent(20))
+img2 <- image_resize(img2, geometry = magick::geometry_size_percent(20))
+img1 <- image_modulate(img1, brightness = 80)
+img2 <- image_modulate(img2, brightness = 200)
+result <- image_composite(img1, img2, operator = "Blend")
+magick::image_ggplot(result)
+ggsave(filename = "results/spomialign_Xenium_vs_DAPI.png", device = "png", plot = last_plot(), width = 7, height = 7)

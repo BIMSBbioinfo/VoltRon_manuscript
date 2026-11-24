@@ -1,0 +1,3 @@
+    Time: 371.7319 s
+    Current memory: 598.56 MiB
+    Peak memory:    989.88 MiB

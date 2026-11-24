@@ -11,10 +11,11 @@ registering points
   return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
 /fast/AG_Landthaler/scripts/Miniforge3/envs/voltron_benchmark_stalign/lib/python3.9/site-packages/STalign/STalign.py:1301: UserWarning: Data has no positive values, and therefore cannot be log-scaled.
   axE[2].set_yscale('log')
-    Time: 336.5115 s
+{'auto': 'cpp', 'cpp': True, 'cpp_error': None, 'num_threads': 8}
+    Time: 15.3195 s
     Current memory: 73.34 MiB
     Peak memory:    206.58 MiB
 transform points
-    Time: 0.1556 s
+    Time: 0.0103 s
     Current memory: 0.00 MiB
     Peak memory:    19.82 MiB

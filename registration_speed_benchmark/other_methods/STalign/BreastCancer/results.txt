@@ -27,10 +27,11 @@ registering points
  [4312.01684444 6509.32962963]
  [4033.27980741 1590.44074074]
  [1245.90943704 5246.81481481]]
-    Time: 168.9887 s
+{'auto': 'cpp', 'cpp': True, 'cpp_error': None, 'num_threads': 8}
+    Time: 15.3195 s
     Current memory: 57.83 MiB
     Peak memory:    64.07 MiB
 transform points
-    Time: 0.0208 s
+    Time: 0.0103 s
     Current memory: 0.00 MiB
     Peak memory:    2.56 MiB

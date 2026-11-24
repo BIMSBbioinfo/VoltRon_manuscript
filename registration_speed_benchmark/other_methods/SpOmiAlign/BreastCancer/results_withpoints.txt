@@ -1,0 +1,3 @@
+[mem] RoMa matching: 44.75 s, peak 3242 MiB, now 1785 MiB
+[mem] Warping images: 3.10 s, peak 1793 MiB, now 1793 MiB
+[mem] transform coordinates: 44.30 s, peak 5056 MiB, now 3431 MiB

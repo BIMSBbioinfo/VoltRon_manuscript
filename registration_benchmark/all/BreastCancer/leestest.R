@@ -15,7 +15,7 @@ datax <- read.table("leestest.txt", row.names = 1, header = TRUE)
 datax <- data.frame(datax, method = rownames(datax))
 datax <- reshape2::melt(datax)
 tmp <- datax$method 
-tmp <- factor(tmp, levels = c("janesick", "stalign", "wsireg", "voltron"))
+tmp <- factor(tmp, levels = c("janesick", "stalign", "wsireg", "spomialign", "voltron"))
 # levels(tmp) <- c("janesick", "stalign", "wsireg", "voltron")
 datax$method <- tmp
 ggplot(datax, aes(x = method, y = value, fill = variable)) + 
@@ -26,7 +26,7 @@ ggplot(datax, aes(x = method, y = value, fill = variable)) +
   scale_fill_manual(values = c("#440154", "#21908C")) +
   ylim(c(0,1)) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
-# ggsave("figures/breastcancer_leestest.pdf", plot = last_plot(), device = "pdf", width = 4, height = 5)
+ggsave("figures/breastcancer_leestest.pdf", plot = last_plot(), device = "pdf", width = 4, height = 5)
 
 #### 
 # all genes ####
@@ -47,13 +47,19 @@ cur_data <- data.frame(cur_data, group = "wsireg")
 cur_data2 <- read.table("data/stalign.txt", row.names = 2)
 cur_data2 <- cur_data2[,-1]
 cur_data2 <- data.frame(cur_data2, group = "stalign")
-cur_data3 <- read.table("data/janesick.txt", row.names = 2)
+cur_data3 <- read.table("data/spomialign.txt", row.names = 2)
 cur_data3 <- cur_data3[,-1]
-cur_data3 <- data.frame(cur_data3, group = "janesick")
-cur_data4 <- read.table("data/voltron.txt", row.names = 2)
+cur_data3 <- data.frame(cur_data3, group = "SPOmiAlign")
+cur_data4 <- read.table("data/janesick.txt", row.names = 2)
 cur_data4 <- cur_data4[,-1]
-cur_data4 <- data.frame(cur_data4, group = "VoltRon")
-datag <- rbind(cur_data, cur_data2, cur_data3, cur_data4)
+cur_data4 <- data.frame(cur_data4, group = "janesick")
+cur_data5 <- read.table("data/voltron.txt", row.names = 2)
+cur_data5 <- cur_data5[,-1]
+cur_data5 <- data.frame(cur_data5, group = "VoltRon")
+datag <- rbind(cur_data, cur_data2, cur_data3, cur_data4, cur_data5)
+temp <- datag$group
+temp <- factor(temp, levels = c("janesick", "stalign", "wsireg", "SPOmiAlign", "VoltRon"))
+datag$group <- temp
 
 ggplot(datag, aes(x = `Lee.s.L.statistic`, fill = group, col = group)) +
   geom_histogram(
@@ -65,7 +71,7 @@ ggplot(datag, aes(x = `Lee.s.L.statistic`, fill = group, col = group)) +
   geom_density(
     linewidth = 0.4, alpha = 0.7
   ) +
-  scale_color_manual(values = c("#440154", "#21908C", "#FDE725", "purple")) + 
-  scale_fill_manual(values = c("#440154", "#21908C", "#FDE725", "purple")) + 
+  scale_color_manual(values = c("#440154", "#21908C", "#FDE725", "purple", "brown")) + 
+  scale_fill_manual(values = c("#440154", "#21908C", "#FDE725", "purple", "brown")) + 
   theme_classic() 
 ggsave("figures/breastcancer_leestest_all.pdf", plot = last_plot(), device = "pdf", width = 6, height = 5)

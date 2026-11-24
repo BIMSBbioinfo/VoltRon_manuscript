@@ -6,6 +6,7 @@ library(dplyr)
 library(ggplot2)
 library(scales)
 library(xlsx)
+library(patchwork)
 source("../functions.R")
 
 ####
@@ -13,7 +14,8 @@ source("../functions.R")
 ####
 
 # get results
-all_results <- read.xlsx("registration_speed_benchmark_other_methods.xlsx", sheetIndex = 1)
+# all_results <- read.xlsx("registration_speed_benchmark_other_methods.xlsx", sheetIndex = 1)
+all_results <- read.xlsx("registration_speed_benchmark_multi.xlsx", sheetIndex = 1)
 all_results <- reshape2::melt(all_results, measure.vars = c("Time_sec", "PeakmemoryMiB"))
 
 # all_results$Dataset <- paste0(all_results$Dataset, "\n (", all_results$Step, ")")
@@ -24,11 +26,11 @@ all_results <- reshape2::melt(all_results, measure.vars = c("Time_sec", "Peakmem
 
 # visualize time 
 all_results_time <- all_results[all_results$variable %in% "Time_sec",]
-breaks <- c(5,10,200,400,800)
+breaks <- c(5,10,200,400,1100)
 all_results_time$value <- transform_breaks_time(all_results_time$value, breaks)
 tmp <- all_results_time$Method
 unitmp <- unique(all_results_time$Method)
-unitmp <- c(unitmp[grepl("PASTE", unitmp)], "SANTO", "STalign", "wsireg", "VoltRon")
+unitmp <- c(unitmp[grepl("PASTE", unitmp)], "SANTO", "CAST", "GEASO", "STalign", "wsireg", "SpOmiAlign", "VoltRon")
 tmp <- factor(tmp, levels = unitmp)
 all_results_time$Method <- tmp
 tmp <- all_results_time$Step
@@ -61,13 +63,14 @@ g1 <- ggplot(mapping = aes(x = Dataset, y = value, fill = Method), data = all_re
 
 # visualize time 
 all_results_memory <- all_results[all_results$variable %in% "PeakmemoryMiB",]
+all_results_memory$value[all_results_memory$value > 4000] <- 4000 # fix larger values to 4000 for visualization
 all_results_memory$value <- all_results_memory$value * (1024^2) # output is MB, convert to byte first
-breaks <- c(1,1024, 1024^2, 1024^3, 4*1024^3)
-tmp <- all_results_time$Method
-unitmp <- unique(all_results_time$Method)
-unitmp <- c(unitmp[grepl("PASTE", unitmp)], "SANTO", "STalign", "wsireg", "VoltRon")
+breaks <- c(1,1024, 1024^2, 1024^3, 4*1024^3, 18*1024^3)
+tmp <- all_results_memory$Method
+unitmp <- unique(all_results_memory$Method)
+unitmp <- c(unitmp[grepl("PASTE", unitmp)], "SANTO", "CAST", "GEASO", "STalign", "wsireg", "SpOmiAlign", "VoltRon")
 tmp <- factor(tmp, levels = unitmp)
-all_results_time$Method <- tmp
+all_results_memory$Method <- tmp
 tmp <- all_results_memory$Step
 tmp <- factor(tmp, levels = c("Align. + Cells/Spots", "Cells/Spots", "Molecules", "Image (Align.)", "Image (Trans.)"))
 all_results_memory$Step <- tmp

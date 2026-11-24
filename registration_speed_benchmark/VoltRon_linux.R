@@ -5,57 +5,14 @@ library(magick)
 library(dplyr)
 library(ggplot2)
 library(scales)
-
-####
-# functions ####
-####
-
-convert_to_bytes <- function(x) {
-  
-  # Remove spaces for safety
-  x <- trimws(x)
-  
-  if (grepl("MB$", x, ignore.case = TRUE)) {
-    value <- as.numeric(sub("MB$", "", x, ignore.case = TRUE))
-    return(value * 1024^2)  # MB → bytes
-  } else if (grepl("GB$", x, ignore.case = TRUE)) {
-    value <- as.numeric(sub("GB$", "", x, ignore.case = TRUE))
-    return(value * 1024^3)  # GB → bytes
-  } else if (grepl("KB$", x, ignore.case = TRUE)) {
-    value <- as.numeric(sub("KB$", "", x, ignore.case = TRUE))
-    return(value * 1024)  # KB → bytes
-  } 
-  
-  return(x)
-}
-
-transform_breaks_time <- function(x){
-  breaks <- c(-1,c(0.5,1,30,70,120))
-  x_ind <- as.integer(cut(x, breaks = breaks))
-  diff <- breaks[-1] - breaks[-length(breaks)]
-  low <- breaks[x_ind]
-  high <- breaks[x_ind + 1]
-  x_norm <- ((x - low)/(high - low)) + (x_ind - 1)
-  return(x_norm)
-}
-
-transform_breaks_mem <- function(x){
-  breaks <- c(1,1024, 1024^2, 1024^3, 4*1024^3)
-  x_ind <- as.integer(cut(x, breaks = breaks))
-  diff <- breaks[-1] - breaks[-length(breaks)]
-  low <- breaks[x_ind]
-  high <- breaks[x_ind + 1]
-  # x_norm <- ((x - low)/(high - low)) + (x_ind - 1)
-  x_norm <- (x)/(1024^(x_ind)) + (x_ind - 1)
-  return(x_norm)
-}
+source("functions.R")
 
 ####
 # import ####
 ####
 
 # get results
-list_files <- list.files("results/", full.names = TRUE)
+list_files <- list.files("results_linux//", full.names = TRUE)
 list_files <- list_files[grepl(".csv$", list_files)]
 list_files_names <- basename(list_files)
 list_files_names <- gsub("\\.[^.]*$", "", list_files_names)
@@ -81,8 +38,6 @@ all_results
 # adjust data for visualization
 all_results$data <- rep(c("image", "observations", "image", "molecules"), 
                         c(6,3,1,3))
-# all_results <- reshape2::melt(all_results, id.vars = c("data", "measure"))
-# all_results <- na.omit(all_results)
 
 ####
 # data types ####
@@ -145,8 +100,8 @@ all_results$name <- tmp
 # visualize time 
 all_results_time <- all_results[all_results$measure %in% "time",]
 all_results_time$name <- droplevels(all_results_time$name)
-breaks <- c(0.5,1,30,70,120)
-all_results_time$value <- transform_breaks_time(all_results_time$value)
+breaks <- c(0.5,1,60,150,300)
+all_results_time$value <- transform_breaks_time(all_results_time$value, breaks)
 all_results_time$type <- ifelse(all_results_time$type != "image", 
                                as.character(all_results_time$type), 
                                ifelse(all_results_time$variable == "time_reg",
@@ -170,7 +125,7 @@ ggplot(mapping = aes(x = name, y = value, fill = data), data = all_results_time)
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
   theme(legend.position = "top") + 
   ylab("Time (seconds)") + xlab("")
-ggsave("results/time.pdf", plot = last_plot(), device = "pdf", 
+ggsave("results_linux//time.pdf", plot = last_plot(), device = "pdf",
        height = 7, width = 12)
   
 ####
@@ -179,9 +134,9 @@ ggsave("results/time.pdf", plot = last_plot(), device = "pdf",
 
 all_results_mem <- all_results[!all_results$measure %in% "time",]
 all_results_mem$name <- droplevels(all_results_mem$name)
+all_results_mem$value[grep("^mem", all_results_mem$variable)] <- 
+  all_results_mem$value[grep("^mem", all_results_mem$variable)] * (1024^2) # output is MB, convert to byte first
 breaks <- c(1,1024, 1024^2, 1024^3, 4*1024^3)
-# all_results_mem$value <- log(all_results_mem$value)/log(1024)
-# all_results_mem$value2 <- transform_breaks_mem(all_results_mem$value)
 all_results_mem$data <- sapply(as.character(all_results_mem$name), \(x){
   strsplit(x, split = " ")[[1]][1]
 })
@@ -208,5 +163,5 @@ ggplot(mapping = aes(x = name, y = value, fill = data), data = all_results_mem) 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
   theme(legend.position = "top") + 
   ylab("Memory Consumption (Bytes)") + xlab("")
-ggsave("results/memory.pdf", plot = last_plot(), device = "pdf", 
-       height = 7, width = 15)
+# ggsave("results_linux/memory.pdf", plot = last_plot(), device = "pdf",
+#        height = 7, width = 15)

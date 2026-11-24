@@ -1,7 +1,7 @@
-Time spent on saving the results, applying the final transform etc.: 4 ms.
-    Time: 105.3640 s
-    Current memory: 192.97 MiB
-    Peak memory:    519.40 MiB
+Time spent on saving the results, applying the final transform etc.: 3 ms.
+    Time: 54.3576 s
+    Current memory: 192.24 MiB
+    Peak memory:    519.42 MiB
 saving transformations
 transform images
 using default compression
@@ -20,14 +20,15 @@ transforming : 0
 transforming : 1
 transforming : 2
 RGB shape: (6524, 6206, 3)
-    Time: 9.1819 s
-    Current memory: 173.25 MiB
-    Peak memory:    178.00 MiB
+    Time: 2.7116 s
+    Current memory: 18.89 MiB
+    Peak memory:    174.80 MiB
 transform points
 transform at index 0 is non-linear and the inverse has not been computed
 inverting displacement field(s)...
 this can take some time
 transforming shape set Xenium_landmarks associated with modality_fluo to modality_brightfield
-    Time: 21.8412 s
+    Time: 6.3659 s
     Current memory: 0.01 MiB
     Peak memory:    7.42 MiB
+Number of threads: 8
