@@ -23,6 +23,14 @@ import time
 import tracemalloc
 import math
 
+# multithread
+import os
+n = int(os.environ.get("SLURM_CPUS_PER_TASK") or len(os.sched_getaffinity(0)))
+for var in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"):
+    os.environ[var] = str(n)
+torch.set_num_threads(n)
+print("torch threads:", torch.get_num_threads())
+
 # get slices
 sliceA = sc.read_h5ad("../../../../../data/10X_Visium_DLPFC/151673/151673_preprocessed.h5")
 xy = np.asarray(sliceA.obsm["spatial"])  # works whether it's stored as an array or a DataFrame

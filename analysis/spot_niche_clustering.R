@@ -295,6 +295,20 @@ ggplot(results_list_merged, aes(x = Method, y = ARI, fill = Sample)) +
 # ggsave(filename = "../../Nature Methods Revision/Images/Supplementary Material/SpatiallyAwareAnalysis/spot_comparison_ARI.pdf", 
 #        plot = last_plot(), device = "pdf", width = 8, height = 4, units = "in")
 
+ggplot(results_list_merged, aes(x = Sample, y = ARI, fill = Type)) + 
+  geom_bar(size = 5, stat = "identity", position = position_dodge()) + 
+  theme_bw() + 
+  theme(axis.text.x=element_text(angle=45, hjust=1, vjust = 1)) +
+  ylab("") + xlab("")+
+  facet_grid(. ~ Method) +
+  theme_classic() + 
+  ylim(0,0.8) + 
+  theme(axis.text.x = element_text(size=7, angle=45, hjust=1, vjust = 1),
+        axis.text.y = element_text(size=7)) +
+  scale_fill_manual(values = c("#440154", "#21908C", "#FDE725", "purple")) 
+ggsave(filename = "../../Nature Methods Revision 2/Images/Supplementary Material/SpatiallyAwareAnalysis/spot_comparison_ARI_2d_Vs_3d.pdf",
+       plot = last_plot(), device = "pdf", width = 8, height = 4, units = "in")
+
 # test results
 # write.table(results_list_merged, file = "../data/DLFPC/DLPFC_merged_nicheclustered_results.tsv", sep = "\t", quote = FALSE, row.names = FALSE)
 results_list_merged <- read.table("../data/DLFPC/DLPFC_merged_nicheclustered_results.tsv", header = TRUE)

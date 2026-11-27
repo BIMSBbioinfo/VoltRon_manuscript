@@ -22,6 +22,7 @@ Xen_pups_image <- importImageData("../../../../../data/xenium/Xenium_Prime_Mouse
 #                                mapping_parameters = readRDS("data/xenium_pups_parameters.rds"))
 # saveRDS(xen_reg$mapping_parameters, file = "data/xenium_pups_parameters.rds")
 mapping_parameters <- readRDS("data/xenium_pups_parameters.rds")
+options(`VoltRon.nthreads` = 8)
 img <- vrImages(Xen_pups_image)
 img2 <- vrImages(Xen_pups)
 img_list <- list(list(`H&E` = img), 

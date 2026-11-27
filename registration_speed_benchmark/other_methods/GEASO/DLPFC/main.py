@@ -15,6 +15,14 @@ import time
 import tracemalloc
 import math
 
+# multithread
+import os
+n = int(os.environ.get("SLURM_CPUS_PER_TASK") or len(os.sched_getaffinity(0)))
+for var in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"):
+    os.environ[var] = str(n)
+torch.set_num_threads(n)
+print("torch threads:", torch.get_num_threads())
+
 # get slices
 slice1 = sc.read_h5ad("../../../../../data/10X_Visium_DLPFC/151673/151673_preprocessed.h5")
 slice2 = sc.read_h5ad("../../../../../data/10X_Visium_DLPFC/151674/151674_preprocessed.h5")

@@ -23,6 +23,7 @@ Xen_lung_image <- importImageData(HE_image,
 # xen_reg <- registerSpatialData(object_list = c(Xen_lung_image, Xen_lung))
 # saveRDS(xen_reg$mapping_parameters, file = "data/xenium_lung_parameters.rds")
 mapping_parameters <- readRDS("data/xenium_lung_parameters.rds")
+options(`VoltRon.nthreads` = 8)
 img <- vrImages(Xen_lung_image)
 img2 <- vrImages(Xen_lung, assay = "Assay1")
 img_list <- list(list(`H&E` = img), 

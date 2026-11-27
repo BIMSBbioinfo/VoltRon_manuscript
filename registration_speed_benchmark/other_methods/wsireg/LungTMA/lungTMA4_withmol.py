@@ -10,6 +10,17 @@ import time
 import tracemalloc
 import math
 
+# time compute
+import SimpleITK as sitk
+import itk
+n = os.environ.get("SLURM_CPUS_PER_TASK") or str(len(os.sched_getaffinity(0)))
+os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = n
+os.environ["OMP_NUM_THREADS"] = n
+sitk.ProcessObject.SetGlobalDefaultNumberOfThreads(int(n))
+print("ITK threads:", itk.MultiThreaderBase.GetGlobalDefaultNumberOfThreads())
+print("SimpleITK threads:", sitk.ProcessObject.GetGlobalDefaultNumberOfThreads())
+print("Number of threads: " + n)
+
 # files
 sample = "lungTMA4"
 output_dir = "results/" + sample + "/"

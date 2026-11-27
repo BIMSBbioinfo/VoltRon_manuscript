@@ -10,6 +10,17 @@ import time
 import tracemalloc
 import math
 
+# time compute
+import SimpleITK as sitk
+import itk
+n = os.environ.get("SLURM_CPUS_PER_TASK") or str(len(os.sched_getaffinity(0)))
+os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = n
+os.environ["OMP_NUM_THREADS"] = n
+sitk.ProcessObject.SetGlobalDefaultNumberOfThreads(int(n))
+print("ITK threads:", itk.MultiThreaderBase.GetGlobalDefaultNumberOfThreads())
+print("SimpleITK threads:", sitk.ProcessObject.GetGlobalDefaultNumberOfThreads())
+print("Number of threads: " + n)
+
 # files
 sample = "lungTMA4"
 output_dir = "results/" + sample + "/"
@@ -27,7 +38,6 @@ cells[["x"]] = cells[["x"]] * scaleparam
 cells[["y"]] = cells[["y"]] * scaleparam
 print(cells.head())
 cells = np.array(cells[['x', 'y']])
-
 
 # initialize registration graph
 reg_graph = WsiReg2D("my_reg_project", output_dir= output_dir)
@@ -115,3 +125,4 @@ tracemalloc.stop()
 print(f"    Time: {elapsed:.4f} s")
 print(f"    Current memory: {current / 1024**2:.2f} MiB")
 print(f"    Peak memory:    {peak / 1024**2:.2f} MiB")
+print("Number of threads: " + n)

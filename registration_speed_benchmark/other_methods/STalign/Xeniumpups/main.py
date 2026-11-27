@@ -38,14 +38,24 @@ if __name__ == '__main__':
     J = np.vstack((M, M, M)) # make into 3xNxM
     J = STalign.normalize(J)
 
-    # get target image
+    # get target image: level 2 of the pyramid (about 4x smaller than full resolution)
+    LEVEL = 2
     with tifffile.TiffFile(arguments["target_image"]) as tif:
-        base = tif.pages[0]
-        # every top-level page the same size as the first is one channel (this skips thumbnails)
-        channel_pages = [p for p in tif.pages if p.shape == base.shape]
-        print(len(channel_pages), "channel page(s); page 0 shape:", base.shape)
-        channels = [[p, *p.pages][2].asarray() for p in channel_pages]   # third resolution of each channel
-    V = channels[0] if len(channels) == 1 else np.stack(channels, axis=-1)   # (H, W, 3), like plt.imread
+        for i, s in enumerate(tif.series):
+            print(f"series {i}: axes={s.axes} levels={[l.shape for l in s.levels]}")
+        levels = tif.series[0].levels
+        lvl = levels[min(LEVEL, len(levels) - 1)]
+        V, axes = lvl.asarray(), lvl.axes
+        full_hw = (levels[0].shape[levels[0].axes.index('Y')],
+                   levels[0].shape[levels[0].axes.index('X')])
+    if V.ndim == 3 and axes[-1] not in "CS":   # channels first, e.g. 'CYX' -> (H, W, C)
+        V = np.moveaxis(V, 0, -1)
+    if len(levels) <= LEVEL:                   # no stored pyramid: average 4x4 blocks instead
+        f = 2 ** LEVEL
+        H, W = V.shape[0] // f * f, V.shape[1] // f * f
+        V = V[:H, :W].reshape(H // f, f, W // f, f, *V.shape[2:]).mean(axis=(1, 3))
+    if V.ndim == 2:
+        V = np.stack((V,) * 3, axis=-1)    # grayscale -> (H, W, 3)
     print("Image size:", V.shape)
 
     # process image
@@ -80,6 +90,7 @@ if __name__ == '__main__':
         device = 'cuda:0'
     else:
         device = 'cpu'
+    print(STalign.backend_info())
     params = {'L':L,'T':T,
             'niter': arguments["niter"],
             'pointsI':pointsI,

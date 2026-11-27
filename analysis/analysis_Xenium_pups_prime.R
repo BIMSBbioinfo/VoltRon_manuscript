@@ -10,7 +10,7 @@ library(xlsx)
 ####
 
 # xenium
-Xen_R1 <- importXenium("../../../../data/xenium/Xenium_V1_mouse_pup_outs/", sample_name = "XeniumR1",
+Xen_R1 <- importXenium("../../../../data/xenium/Xenium_Prime_Mouse_Pup_FFPE_outs/", sample_name = "XeniumR1",
                        resolution_level = 3, overwrite_resolution = TRUE, import_molecules = FALSE)
 
 # HE image

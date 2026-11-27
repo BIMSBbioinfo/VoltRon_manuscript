@@ -14,6 +14,9 @@ from PIL import Image
 Image.MAX_IMAGE_PIXELS = 665836957
 import time
 import tracemalloc
+import resource
+def peak_rss_mib():
+    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024   # Linux reports KiB
 
 if __name__ == '__main__':
 
@@ -59,6 +62,7 @@ if __name__ == '__main__':
     print("registering points")
     tracemalloc.start()
     start = time.perf_counter()
+    start_peak = peak_rss_mib()
 
     # affine transformation
     L,T = STalign.L_T_from_points(np.flip(pointsI, axis = 1),np.flip(pointsJ, axis = 1))
@@ -74,6 +78,7 @@ if __name__ == '__main__':
     pointsI = np.asarray(np.flip(pointsI, axis = 1)).copy()
     pointsJ = np.asarray(np.flip(pointsJ, axis = 1)).copy()
     print(pointsI, pointsJ)
+    print(STalign.backend_info())
     params = {'L':L,'T':T,
             'niter': arguments["niter"],
             'pointsI': pointsI,
@@ -91,14 +96,17 @@ if __name__ == '__main__':
     elapsed = time.perf_counter() - start
     current, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
-
+    current_peak = peak_rss_mib()
+    
     print(f"    Time: {elapsed:.4f} s")
-    print(f"    Current memory: {current / 1024**2:.2f} MiB")
-    print(f"    Peak memory:    {peak / 1024**2:.2f} MiB")
+    # print(f"    Current memory: {current / 1024**2:.2f} MiB")
+    # print(f"    Peak memory:    {peak / 1024**2:.2f} MiB")
+    print(f"    Peak memory: {current_peak:.0f} MiB")
 
     print("transform points")
     tracemalloc.start()
     start = time.perf_counter()
+    start_peak = peak_rss_mib()
 
     # get necessary output variables
     A = out['A']
@@ -111,7 +119,9 @@ if __name__ == '__main__':
     elapsed = time.perf_counter() - start
     current, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
+    current_peak = peak_rss_mib()
 
     print(f"    Time: {elapsed:.4f} s")
-    print(f"    Current memory: {current / 1024**2:.2f} MiB")
-    print(f"    Peak memory:    {peak / 1024**2:.2f} MiB")
+    # print(f"    Current memory: {current / 1024**2:.2f} MiB")
+    # print(f"    Peak memory:    {peak / 1024**2:.2f} MiB")
+    print(f"    Peak memory: {current_peak:.0f} MiB")

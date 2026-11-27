@@ -19,6 +19,7 @@ DLPFC_2_subset <- subset(DLPFC_2, image = "1323x1393+405+361")
 # xen_reg <- registerSpatialData(object_list = c(DLPFC_1_subset, DLPFC_2_subset))
 # saveRDS(xen_reg$mapping_parameters, file = "data/visium_dlfpc_hires_parameters.rds")
 mapping_parameters <- readRDS("data/visium_dlfpc_hires_parameters.rds")
+options(`VoltRon.nthreads` = 8)
 img <- vrImages(DLPFC_1)
 img2 <- vrImages(DLPFC_2)
 img_list <- list(list(`H&E` = img), 

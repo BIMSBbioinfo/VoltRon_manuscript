@@ -22,6 +22,7 @@ Xen_breast_image <- importImageData(ome.tiff,
 # xen_reg <- registerSpatialData(object_list = c(Xen_breast_image, Xen_breast))
 # saveRDS(xen_reg$mapping_parameters, file = "data/xenium_breast_parameters.rds")
 mapping_parameters <- readRDS("data/xenium_breast_parameters.rds")
+options(`VoltRon.nthreads` = 8)
 img <- vrImages(Xen_breast_image)
 img2 <- vrImages(Xen_breast, assay = "Assay1")
 img_list <- list(list(`H&E` = img), 

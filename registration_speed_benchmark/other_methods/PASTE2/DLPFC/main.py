@@ -11,6 +11,15 @@ import time
 import tracemalloc
 import math
 
+# multithread
+import os
+n = os.environ.get("SLURM_CPUS_PER_TASK") or str(len(os.sched_getaffinity(0)))
+for var in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"):
+    os.environ[var] = n
+from threadpoolctl import threadpool_info
+for lib in threadpool_info():
+    print(lib["internal_api"], lib["num_threads"], lib["filepath"])
+
 # get slices
 sliceA = sc.read_h5ad("../../../../../data/10X_Visium_DLPFC/151673/151673_preprocessed.h5")
 sliceB = sc.read_h5ad("../../../../../data/10X_Visium_DLPFC/151674/151674_preprocessed.h5")

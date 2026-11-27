@@ -13,6 +13,17 @@ import math
 
 Image.MAX_IMAGE_PIXELS = 665836957
 
+# time compute
+import SimpleITK as sitk
+import itk
+n = os.environ.get("SLURM_CPUS_PER_TASK") or str(len(os.sched_getaffinity(0)))
+os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = n
+os.environ["OMP_NUM_THREADS"] = n
+sitk.ProcessObject.SetGlobalDefaultNumberOfThreads(int(n))
+print("ITK threads:", itk.MultiThreaderBase.GetGlobalDefaultNumberOfThreads())
+print("SimpleITK threads:", sitk.ProcessObject.GetGlobalDefaultNumberOfThreads())
+print("Number of threads: " + n)
+
 # files
 sample = "HE_vs_XeniumR1"
 output_dir = "results/" + sample + "/"
@@ -21,21 +32,52 @@ if not os.path.exists(output_dir):
 else:
     shutil.rmtree(output_dir)
     os.mkdir(output_dir)
-path = '../../../../../data/Xenium_Prime_Mouse_Pup_FFPE_outs/morphology_focus/morphology_focus_0000.ome.tif'
-with tifffile.TiffFile(path) as tif:
-    base = tif.pages[0]                  # level 0 = full resolution
-    levels = [base, *base.pages]         # lower resolutions are stored as SubIFDs
-    print([lv.shape for lv in levels])   # each level should be half the size of the previous
-    arr = levels[2].asarray()            # third resolution (1/4 of full size)
-query_img = Image.fromarray(arr)
-# ref_img = Image.open('../../../../../data/Xenium_Prime_Mouse_Pup_FFPE_outs/Xenium_Prime_Mouse_Pup_FFPE_he_image.ome.tif')
-path = '../../../../../data/Xenium_Prime_Mouse_Pup_FFPE_outs/Xenium_Prime_Mouse_Pup_FFPE_he_image.ome.tif'
-with tifffile.TiffFile(path) as tif:
-    base = tif.pages[0]                  # level 0 = full resolution
-    levels = [base, *base.pages]         # lower resolutions are stored as SubIFDs
-    print([lv.shape for lv in levels])   # each level should be half the size of the previous
-    arr = levels[2].asarray()            # third resolution (1/4 of full size)
-ref_img = Image.fromarray(arr)
+  
+# images
+def read_level(path, level=2, channel=None):
+    """Read one pyramid level as (H, W) or (H, W, C); also return the full-resolution (H, W)."""
+    with tifffile.TiffFile(path) as tif:
+        for i, s in enumerate(tif.series):
+            print(f"{os.path.basename(path)} series {i}: axes={s.axes} levels={[l.shape for l in s.levels]}")
+        levels = tif.series[0].levels
+        lvl = levels[min(level, len(levels) - 1)]
+        if channel is not None and "C" in lvl.axes:
+            arr, axes = lvl.pages[channel].asarray(), "YX"   # read only this channel
+        else:
+            arr, axes = lvl.asarray(), lvl.axes
+        full = levels[0]
+        full_hw = (full.shape[full.axes.index("Y")], full.shape[full.axes.index("X")])
+    if arr.ndim == 3 and axes[-1] not in "CS":            # channels first, e.g. 'CYX' -> (H, W, C)
+        arr = np.moveaxis(arr, 0, -1)
+    if len(levels) <= level:                              # no stored pyramid: average f x f blocks
+        f, dtype = 2 ** level, arr.dtype
+        H, W = arr.shape[0] // f * f, arr.shape[1] // f * f
+        arr = arr[:H, :W].reshape(H // f, f, W // f, f, *arr.shape[2:]).mean(axis=(1, 3))
+        arr = arr.round().astype(dtype)                   # back to the file's type for PIL
+    print(os.path.basename(path), "->", arr.shape, arr.dtype)
+    return arr, full_hw
+
+data_dir = "../../../../../data/Xenium_Prime_Mouse_Pup_FFPE_outs/"
+query_arr, query_full_hw = read_level(data_dir + "morphology_focus/morphology_focus_0000.ome.tif", channel=0)  # DAPI
+query_img = Image.fromarray(query_arr)
+ref_arr, ref_full_hw = read_level(data_dir + "Xenium_Prime_Mouse_Pup_FFPE_he_image.ome.tif")
+ref_img = Image.fromarray(ref_arr)
+# path = '../../../../../data/Xenium_Prime_Mouse_Pup_FFPE_outs/morphology_focus/morphology_focus_0000.ome.tif'
+# with tifffile.TiffFile(path) as tif:
+#     base = tif.pages[0]                  # level 0 = full resolution
+#     levels = [base, *base.pages]         # lower resolutions are stored as SubIFDs
+#     print([lv.shape for lv in levels])   # each level should be half the size of the previous
+#     arr = levels[2].asarray()            # third resolution (1/4 of full size)
+# query_img = Image.fromarray(arr)
+# # ref_img = Image.open('../../../../../data/Xenium_Prime_Mouse_Pup_FFPE_outs/Xenium_Prime_Mouse_Pup_FFPE_he_image.ome.tif')
+# path = '../../../../../data/Xenium_Prime_Mouse_Pup_FFPE_outs/Xenium_Prime_Mouse_Pup_FFPE_he_image.ome.tif'
+# with tifffile.TiffFile(path) as tif:
+#     base = tif.pages[0]                  # level 0 = full resolution
+#     levels = [base, *base.pages]         # lower resolutions are stored as SubIFDs
+#     print([lv.shape for lv in levels])   # each level should be half the size of the previous
+#     arr = levels[2].asarray()            # third resolution (1/4 of full size)
+# ref_img = Image.fromarray(arr)
+
 cells = pd.read_csv("../../../../../data/Xenium_Prime_Mouse_Pup_FFPE_outs/cells.csv.gz")
 print(cells.head())
 scaleparam = 0.2125 * math.pow(2,3-1)
